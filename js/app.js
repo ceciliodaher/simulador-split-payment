@@ -502,15 +502,13 @@ class SimuladorFluxoCaixa {
             resultadoSplit.tributosConvencionais * (resultadoSplit.prazoEfetivoPagamentoImposto / 30);
         
         // Calcula a diferença absoluta e percentual
-        // Inverter a ordem dos operandos para refletir corretamente o impacto
-        const diferencaCapitalGiro = capitalGiroAtual - capitalGiroSplit;
+        const diferencaCapitalGiro = capitalGiroSplit - capitalGiroAtual;
         const percentualImpacto = capitalGiroAtual !== 0 ? 
             (diferencaCapitalGiro / Math.abs(capitalGiroAtual)) * 100 : 0;
 
         // Calcula outros indicadores relevantes
-        // Agora, um valor positivo indica necessidade adicional de capital
-        const necessidadeAdicionalCapitalGiro = diferencaCapitalGiro > 0 ? 
-            diferencaCapitalGiro : 0;
+        const necessidadeAdicionalCapitalGiro = diferencaCapitalGiro < 0 ? 
+            Math.abs(diferencaCapitalGiro) : 0;
         
         const custoFinanceiroAnual = necessidadeAdicionalCapitalGiro * 
             (this.config.parametros_fluxo_caixa.taxa_capital_giro * 12);
@@ -626,9 +624,10 @@ class SimuladorFluxoCaixa {
                 .reduce((acc, val) => acc + (val.custoFinanceiroAnual || 0), 0),
 
             // Impacto médio anual sobre a margem operacional
+            // Código corrigido usando o objeto memoriaCalculo:
             impactoMedioMargem: Object.values(resultadosAnuais).length > 0 ?
                 Object.values(resultadosAnuais)
-                    .reduce((acc, val) => acc + ((dadosNorm.margem || 0) - (val.margemOperacionalAjustada || 0)), 0) /
+                    .reduce((acc, val) => acc + ((val.margemOperacionalOriginal || 0) - (val.margemOperacionalAjustada || 0)), 0) /
                     Object.values(resultadosAnuais).length : 0
         };
         
@@ -650,8 +649,368 @@ class SimuladorFluxoCaixa {
         
         return resultados;
     }
+    
+    /**
+     * Simula estratégias de mitigação do impacto do Split Payment
+     * @param {Object} dados - Dados de entrada do formulário
+     * @param {Object} estrategias - Configurações das estratégias a simular
+     * @param {number} ano - Ano de referência para percentual de implementação
+     * @returns {Object} Resultados da simulação de estratégias
+     */
+    simularEstrategiasMitigacao(dados, estrategias, ano = 2026) {
+        // Calcula o impacto base sem estratégias
+        const impactoBase = this.calcularImpactoCapitalGiro(dados, ano);
 
-    // Simula o impacto completo
+        // Resultados por estratégia
+        const resultadosEstrategias = {};
+
+        // Estratégia: Ajuste de Preços
+        if (estrategias.ajustePrecos && estrategias.ajustePrecos.ativar) {
+            const {
+                percentualAumento,
+                elasticidade,
+                periodoAjuste
+            } = estrategias.ajustePrecos;
+
+            // Cálculo do impacto no volume de vendas com base na elasticidade
+            const impactoVolume = percentualAumento * elasticidade;
+
+            // Cálculo do faturamento ajustado
+            const faturamentoAjustado = dados.faturamento * (1 + percentualAumento) * (1 + impactoVolume);
+
+            // Dados ajustados para simulação
+            const dadosAjustados = { ...dados, faturamento: faturamentoAjustado };
+
+            // Simula o impacto com a estratégia
+            const impactoComEstrategia = this.calcularImpactoCapitalGiro(dadosAjustados, ano);
+
+            // Calcula a eficácia da estratégia
+            const diferencaImpacto = impactoComEstrategia.diferencaCapitalGiro - impactoBase.diferencaCapitalGiro;
+            const eficaciaPercentual = impactoBase.diferencaCapitalGiro !== 0 ?
+                (diferencaImpacto / Math.abs(impactoBase.diferencaCapitalGiro)) * 100 : 0;
+
+            // Registra os resultados
+            resultadosEstrategias.ajustePrecos = {
+                parametros: estrategias.ajustePrecos,
+                impactoVolume,
+                faturamentoAjustado,
+                diferencaImpacto,
+                eficaciaPercentual,
+                custoImplementacao: 0, // Sem custo direto de implementação
+                retornoInvestimento: diferencaImpacto > 0 ? Infinity : 0,
+                resultadoDetalhado: impactoComEstrategia
+            };
+        }
+
+        // Estratégia: Renegociação de Prazos com Fornecedores
+        if (estrategias.renegociacaoPrazos && estrategias.renegociacaoPrazos.ativar) {
+            const {
+                aumentoPrazo,
+                percentualFornecedores,
+                custoContrapartida
+            } = estrategias.renegociacaoPrazos;
+
+            // Cálculo do PMP ajustado
+            const pmpAdicional = aumentoPrazo * (percentualFornecedores / 100);
+            const pmpAjustado = dados.pmp + pmpAdicional;
+
+            // Dados ajustados para simulação
+            const dadosAjustados = { ...dados, pmp: pmpAjustado };
+
+            // Simula o impacto com a estratégia
+            const impactoComEstrategia = this.calcularImpactoCapitalGiro(dadosAjustados, ano);
+
+            // Calcula o custo da contrapartida
+            const custoAnual = dados.faturamento * 12 * (custoContrapartida / 100);
+
+            // Calcula a eficácia da estratégia
+            const diferencaImpacto = impactoComEstrategia.diferencaCapitalGiro - impactoBase.diferencaCapitalGiro;
+            const eficaciaPercentual = impactoBase.diferencaCapitalGiro !== 0 ?
+                (diferencaImpacto / Math.abs(impactoBase.diferencaCapitalGiro)) * 100 : 0;
+
+            // Calcula o retorno sobre investimento (ROI)
+            const retornoInvestimento = custoAnual > 0 ?
+                diferencaImpacto / custoAnual : Infinity;
+
+            // Registra os resultados
+            resultadosEstrategias.renegociacaoPrazos = {
+                parametros: estrategias.renegociacaoPrazos,
+                pmpAdicional,
+                pmpAjustado,
+                diferencaImpacto,
+                eficaciaPercentual,
+                custoImplementacao: custoAnual,
+                retornoInvestimento,
+                resultadoDetalhado: impactoComEstrategia
+            };
+        }
+
+        // Estratégia: Antecipação de Recebíveis
+        if (estrategias.antecipacaoRecebiveis && estrategias.antecipacaoRecebiveis.ativar) {
+            const {
+                percentualAntecipacao,
+                taxaDesconto,
+                prazoAntecipacao
+            } = estrategias.antecipacaoRecebiveis;
+
+            // Extrai dados relevantes
+            const dadosNorm = this._normalizarDados(dados);
+            const vendasPrazo = dadosNorm.faturamentoMensal * dadosNorm.percPrazo;
+
+            // Valor a antecipar
+            const valorAntecipar = vendasPrazo * (percentualAntecipacao / 100);
+
+            // Custo da antecipação
+            const taxaDescontoMensal = taxaDesconto / 100;
+            const custoAntecipacao = valorAntecipar * taxaDescontoMensal * (prazoAntecipacao / 30);
+            const custoAnual = custoAntecipacao * 12;
+
+            // Cálculo do PMR ajustado
+            const pmrOriginal = dadosNorm.pmr;
+            const pmrAjustado = pmrOriginal * (1 - (percentualAntecipacao / 100));
+
+            // Dados ajustados para simulação
+            const dadosAjustados = { ...dados, pmr: pmrAjustado };
+
+            // Simula o impacto com a estratégia
+            const impactoComEstrategia = this.calcularImpactoCapitalGiro(dadosAjustados, ano);
+
+            // Calcula a eficácia da estratégia
+            const diferencaImpacto = impactoComEstrategia.diferencaCapitalGiro - impactoBase.diferencaCapitalGiro;
+            const eficaciaPercentual = impactoBase.diferencaCapitalGiro !== 0 ?
+                (diferencaImpacto / Math.abs(impactoBase.diferencaCapitalGiro)) * 100 : 0;
+
+            // Calcula o retorno sobre investimento (ROI)
+            const retornoInvestimento = custoAnual > 0 ?
+                diferencaImpacto / custoAnual : Infinity;
+
+            // Registra os resultados
+            resultadosEstrategias.antecipacaoRecebiveis = {
+                parametros: estrategias.antecipacaoRecebiveis,
+                valorAntecipar,
+                custoAntecipacao,
+                custoAnual,
+                pmrAjustado,
+                diferencaImpacto,
+                eficaciaPercentual,
+                custoImplementacao: custoAnual,
+                retornoInvestimento,
+                resultadoDetalhado: impactoComEstrategia
+            };
+        }
+
+        // Estratégia: Captação de Capital de Giro
+        if (estrategias.capitalGiro && estrategias.capitalGiro.ativar) {
+            const {
+                valorCaptacao,
+                taxaJuros,
+                prazoPagamento,
+                carencia
+            } = estrategias.capitalGiro;
+
+            // Extrai dados relevantes
+            const dadosNorm = this._normalizarDados(dados);
+
+            // Valor a captar (% do faturamento mensal)
+            const valorACaptar = dadosNorm.faturamentoMensal * (valorCaptacao / 100);
+
+            // Taxa de juros mensal
+            const taxaJurosMensal = taxaJuros / 100;
+
+            // Cálculo do custo financeiro anual
+            const custoMensal = valorACaptar * taxaJurosMensal;
+            const custoAnual = custoMensal * 12;
+
+            // Não há alteração no impacto direto, apenas compensação com capital externo
+            const diferencaImpacto = valorACaptar > Math.abs(impactoBase.diferencaCapitalGiro) ?
+                Math.abs(impactoBase.diferencaCapitalGiro) : valorACaptar;
+
+            const eficaciaPercentual = impactoBase.diferencaCapitalGiro !== 0 ?
+                (diferencaImpacto / Math.abs(impactoBase.diferencaCapitalGiro)) * 100 : 0;
+
+            // Calcula o retorno sobre investimento (ROI)
+            const retornoInvestimento = custoAnual > 0 ?
+                diferencaImpacto / custoAnual : Infinity;
+
+            // Registra os resultados
+            resultadosEstrategias.capitalGiro = {
+                parametros: estrategias.capitalGiro,
+                valorACaptar,
+                custoMensal,
+                custoAnual,
+                diferencaImpacto,
+                eficaciaPercentual,
+                custoImplementacao: custoAnual,
+                retornoInvestimento,
+                impactoOriginal: impactoBase.diferencaCapitalGiro
+            };
+        }
+
+        // Análise comparativa das estratégias
+        const analiseComparativa = this._analisarEstrategiasComparativas(resultadosEstrategias, impactoBase);
+
+        // Resultados gerais
+        const resultados = {
+            impactoBase,
+            resultadosEstrategias,
+            analiseComparativa
+        };
+
+        // Registra resultados na memória de cálculo
+        this.memoriaCalculo.estrategiasMitigacao = resultados;
+
+        return resultados;
+    }
+
+    /**
+     * Analisa comparativamente as diferentes estratégias de mitigação
+     * @private
+     * @param {Object} resultadosEstrategias - Resultados por estratégia
+     * @param {Object} impactoBase - Impacto base sem estratégias
+     * @returns {Object} Análise comparativa
+     */
+    _analisarEstrategiasComparativas(resultadosEstrategias, impactoBase) {
+        // Ranking de eficácia
+        const estrategiasComEficacia = Object.entries(resultadosEstrategias)
+            .map(([estrategia, resultado]) => ({
+                estrategia,
+                diferencaImpacto: resultado.diferencaImpacto,
+                eficaciaPercentual: resultado.eficaciaPercentual,
+                custoImplementacao: resultado.custoImplementacao,
+                retornoInvestimento: resultado.retornoInvestimento
+            }))
+            .sort((a, b) => b.eficaciaPercentual - a.eficaciaPercentual);
+
+        // Ranking de custo-benefício (ROI)
+        const estrategiasComROI = [...estrategiasComEficacia]
+            .sort((a, b) => b.retornoInvestimento - a.retornoInvestimento);
+
+        // Impacto conjunto das estratégias (estimativa simplificada)
+        // Considera apenas 70% da eficácia combinada devido a sobreposições
+        const eficaciaCombinada = estrategiasComEficacia
+            .reduce((acc, val) => acc + val.diferencaImpacto, 0) * 0.7;
+
+        const percentualMitigacaoCombinada = impactoBase.diferencaCapitalGiro !== 0 ?
+            (eficaciaCombinada / Math.abs(impactoBase.diferencaCapitalGiro)) * 100 : 0;
+
+        const custoCombinado = estrategiasComEficacia
+            .reduce((acc, val) => acc + val.custoImplementacao, 0);
+
+        // Resultado da análise comparativa
+        return {
+            rankingEficacia: estrategiasComEficacia,
+            rankingROI: estrategiasComROI,
+            impactoCombinado: {
+                eficaciaCombinada,
+                percentualMitigacaoCombinada,
+                custoCombinado,
+                roiCombinado: custoCombinado > 0 ? eficaciaCombinada / custoCombinado : Infinity
+            },
+            recomendacoes: this._gerarRecomendacoes(estrategiasComEficacia, impactoBase)
+        };
+    }
+
+    /**
+     * Gera recomendações baseadas na análise das estratégias
+     * @private
+     * @param {Array} estrategiasRanqueadas - Estratégias ordenadas por eficácia
+     * @param {Object} impactoBase - Impacto base sem estratégias
+     * @returns {Array} Lista de recomendações
+     */
+    _gerarRecomendacoes(estrategiasRanqueadas, impactoBase) {
+        const recomendacoes = [];
+
+        // Verifica se há necessidade de mitigação
+        if (impactoBase.diferencaCapitalGiro >= 0) {
+            recomendacoes.push({
+                tipo: 'informativa',
+                mensagem: 'O impacto do Split Payment é neutro ou positivo para o capital de giro, não sendo necessárias estratégias de mitigação.'
+            });
+            return recomendacoes;
+        }
+
+        // Recomendação geral baseada na magnitude do impacto
+        const impactoPercentual = impactoBase.percentualImpacto;
+
+        if (impactoPercentual < -5) {
+            recomendacoes.push({
+                tipo: 'urgente',
+                mensagem: `O impacto negativo de ${Math.abs(impactoPercentual).toFixed(2)}% no capital de giro é significativo e requer atenção imediata.`
+            });
+        } else {
+            recomendacoes.push({
+                tipo: 'moderada',
+                mensagem: `O impacto negativo de ${Math.abs(impactoPercentual).toFixed(2)}% no capital de giro é moderado, mas requer planejamento.`
+            });
+        }
+
+        // Recomendações específicas para cada estratégia
+        estrategiasRanqueadas.forEach(estrategia => {
+            if (estrategia.eficaciaPercentual > 50) {
+                recomendacoes.push({
+                    tipo: 'estrategia',
+                    estrategia: estrategia.estrategia,
+                    mensagem: `A estratégia de ${this._traduzirNomeEstrategia(estrategia.estrategia)} apresenta alta eficácia (${estrategia.eficaciaPercentual.toFixed(2)}%) e deve ser priorizada.`
+                });
+            } else if (estrategia.eficaciaPercentual > 20) {
+                recomendacoes.push({
+                    tipo: 'estrategia',
+                    estrategia: estrategia.estrategia,
+                    mensagem: `A estratégia de ${this._traduzirNomeEstrategia(estrategia.estrategia)} apresenta eficácia moderada (${estrategia.eficaciaPercentual.toFixed(2)}%) e pode ser considerada.`
+                });
+            }
+        });
+
+        // Recomendação sobre combinação de estratégias
+        if (estrategiasRanqueadas.length > 1) {
+            recomendacoes.push({
+                tipo: 'combinada',
+                mensagem: 'A combinação de múltiplas estratégias pode proporcionar maior mitigação do impacto, mas atenção aos custos cumulativos.'
+            });
+        }
+
+        return recomendacoes;
+    }
+
+    /**
+     * Traduz o nome técnico da estratégia para um nome amigável
+     * @private
+     * @param {string} nomeEstrategia - Nome técnico da estratégia
+     * @returns {string} Nome amigável da estratégia
+     */
+    _traduzirNomeEstrategia(nomeEstrategia) {
+        const traducoes = {
+            ajustePrecos: 'Ajuste de Preços',
+            renegociacaoPrazos: 'Renegociação de Prazos com Fornecedores',
+            antecipacaoRecebiveis: 'Antecipação de Recebíveis',
+            capitalGiro: 'Captação de Capital de Giro',
+            mixProdutos: 'Otimização do Mix de Produtos',
+            meiosPagamento: 'Diversificação dos Meios de Pagamento'
+        };
+
+        return traducoes[nomeEstrategia] || nomeEstrategia;
+    }
+
+    /**
+     * Limpa a memória de cálculo
+     */
+    limparMemoriaCalculo() {
+        this.memoriaCalculo = {
+            parametrosEntrada: {},
+            resultadoAtual: {},
+            resultadoSplitPayment: {},
+            impactoGeral: {},
+            projecaoTemporal: {},
+            estrategiasMitigacao: {}
+        };
+    }
+
+    /**
+     * Realiza a simulação completa do impacto do Split Payment
+     * @param {Object} dados - Dados de entrada do formulário
+     * @param {Object} opcoesSimulacao - Opções adicionais para a simulação
+     * @returns {Object} Resultados completos da simulação
+     */
     simular(dados, opcoesSimulacao = {}) {
         // Opções padrão
         const opcoes = {
@@ -663,10 +1022,10 @@ class SimuladorFluxoCaixa {
             estrategias: {},
             ...opcoesSimulacao
         };
-        
+
         // Resultados básicos para o ano inicial
         const resultadoBase = this.calcularImpactoCapitalGiro(dados, opcoes.anoInicial);
-        
+
         // Projeção temporal para o período de transição
         const projecaoTemporal = this.simularPeriodoTransicao(
             dados, 
@@ -675,15 +1034,26 @@ class SimuladorFluxoCaixa {
             opcoes.cenario, 
             opcoes.taxaCrescimento
         );
-        
+
+        // Simulação de estratégias de mitigação (se solicitado)
+        let estrategiasMitigacao = null;
+        if (opcoes.simularEstrategias) {
+            estrategiasMitigacao = this.simularEstrategiasMitigacao(
+                dados,
+                opcoes.estrategias,
+                opcoes.anoInicial
+            );
+        }
+
         // Resultados completos da simulação
         const resultados = {
             parametrosEntrada: this.memoriaCalculo.parametrosEntrada,
             resultadoBase,
             projecaoTemporal,
+            estrategiasMitigacao,
             memoriaCalculo: this.memoriaCalculo
         };
-        
+
         return resultados;
     }
 
@@ -738,6 +1108,9 @@ const SimuladorApp = {
 
         // Inicializar módulo de configurações setoriais quando necessário
         this.configurarModuloConfiguracoesSetoriais();
+        
+        // Inicializar aba de estratégias de mitigação
+        this.inicializarAbaEstrategias();
 
         console.log('Simulador de Impacto do Split Payment inicializado com sucesso.');
     },
@@ -760,6 +1133,33 @@ const SimuladorApp = {
                 }
             });
         });
+    },
+    
+    // Inicializa a aba de estratégias de mitigação
+    inicializarAbaEstrategias: function() {
+        console.log('Inicializando aba de estratégias de mitigação');
+
+        // Assegurar que os painéis de parâmetros estejam inicialmente ocultos
+        document.querySelectorAll('.strategy-params').forEach(panel => {
+            panel.style.display = 'none';
+        });
+
+        // Configurar checkboxes para mostrar/ocultar painéis
+        document.querySelectorAll('input[name="estrategias"]').forEach(checkbox => {
+            // Verificar estado inicial
+            if (checkbox.checked) {
+                const panelId = `params-${checkbox.value}`;
+                const panel = document.getElementById(panelId);
+                if (panel) panel.style.display = 'block';
+            }
+        });
+
+        // Assegurar que os botões de ação estejam visíveis
+        const botoesContainer = document.querySelector('#estrategias-mitigacao .buttons-container');
+        if (botoesContainer) {
+            botoesContainer.style.display = 'flex';
+            console.log('Container de botões configurado:', botoesContainer);
+        }
     },
     
     // Inicializa as configurações setoriais
@@ -959,6 +1359,46 @@ const SimuladorApp = {
                 this.limparFormulario();
             });
         }
+        
+        // Botão Simular Estratégias
+        const btnSimularEstrategias = document.getElementById('btn-simular-estrategias');
+        if (btnSimularEstrategias) {
+            // Remover event listeners existentes (evitar duplicação)
+            const novoBtn = btnSimularEstrategias.cloneNode(true);
+            if (btnSimularEstrategias.parentNode) {
+                btnSimularEstrategias.parentNode.replaceChild(novoBtn, btnSimularEstrategias);
+            }
+
+            // Adicionar novo event listener
+            novoBtn.addEventListener('click', () => {
+                this.realizarSimulacaoEstrategias();
+            });
+        }
+
+        // Configurar checkboxes para mostrar/ocultar painéis de estratégias
+        document.querySelectorAll('input[name="estrategias"]').forEach(checkbox => {
+            // Remover eventos existentes para evitar duplicação
+            const novoCheckbox = checkbox.cloneNode(true);
+            checkbox.parentNode.replaceChild(novoCheckbox, checkbox);
+
+            // Adicionar novo event listener
+            novoCheckbox.addEventListener('change', function() {
+                const estrategia = this.value;
+                const panelId = `params-${estrategia}`;
+                const panel = document.getElementById(panelId);
+
+                if (panel) {
+                    panel.style.display = this.checked ? 'block' : 'none';
+                }
+            });
+
+            // Verificar estado inicial
+            if (novoCheckbox.checked) {
+                const panelId = `params-${novoCheckbox.value}`;
+                const panel = document.getElementById(panelId);
+                if (panel) panel.style.display = 'block';
+            }
+        });
         
         // Cenário Personalizado
         const selectCenario = document.getElementById('cenario');
@@ -1180,6 +1620,222 @@ const SimuladorApp = {
             console.error('Stack trace:', error.stack);
             alert('Ocorreu um erro geral ao preparar a simulação. Verifique o console para mais detalhes.');
         }
+    },
+    
+    // Realiza simulação de estratégias de mitigação
+    realizarSimulacaoEstrategias: function() {
+        // Verificar se já houve uma simulação base
+        if (!this._ultimosResultados) {
+            alert('É necessário realizar uma simulação básica antes de simular estratégias de mitigação.');
+            return;
+        }
+
+        try {
+            // Coletar dados sobre estratégias de mitigação
+            const estrategias = this.coletarDadosEstrategias();
+
+            // Coletar dados do formulário principal
+            const dados = this.coletarDadosFormulario();
+
+            // Configurar opções de simulação
+            const opcoesSimulacao = {
+                anoInicial: parseInt(dados.dataInicial?.split('-')[0] || '2026', 10),
+                simularEstrategias: true,
+                estrategias: estrategias
+            };
+
+            // Executar simulação
+            const resultados = this.simulador.simular(dados, opcoesSimulacao);
+
+            // Armazenar resultados para uso em outras partes do sistema
+            this._ultimosResultadosEstrategias = resultados;
+
+            // Exibir resultados
+            this.exibirResultadosEstrategias(resultados);
+
+            return resultados;
+        } catch (error) {
+            console.error('Erro na simulação de estratégias:', error);
+            alert('Ocorreu um erro ao executar a simulação de estratégias de mitigação.');
+        }
+    },
+
+    // Coleta dados sobre estratégias de mitigação
+    coletarDadosEstrategias: function() {
+        const estrategias = {};
+
+        // Verificar quais estratégias estão selecionadas
+        const checkbox_ajustePrecos = document.getElementById('ajuste-precos');
+        const checkbox_renegociacaoPrazos = document.getElementById('renegociacao-prazos');
+        const checkbox_antecipacaoRecebiveis = document.getElementById('antecipacao-recebiveis');
+        const checkbox_capitalGiro = document.getElementById('capital-giro');
+
+        // Estratégia: Ajuste de Preços
+        if (checkbox_ajustePrecos && checkbox_ajustePrecos.checked) {
+            estrategias.ajustePrecos = {
+                ativar: true,
+                percentualAumento: parseFloat(document.getElementById('perc-aumento').value) / 100 || 0.05,
+                elasticidade: parseFloat(document.getElementById('elasticidade').value) || -1.2,
+                periodoAjuste: parseInt(document.getElementById('periodo-ajuste').value) || 3
+            };
+        }
+
+        // Estratégia: Renegociação de Prazos
+        if (checkbox_renegociacaoPrazos && checkbox_renegociacaoPrazos.checked) {
+            estrategias.renegociacaoPrazos = {
+                ativar: true,
+                aumentoPrazo: parseInt(document.getElementById('aumento-prazo').value) || 15,
+                percentualFornecedores: parseFloat(document.getElementById('perc-fornecedores').value) || 60,
+                custoContrapartida: parseFloat(document.getElementById('custo-contrapartida').value) || 0
+            };
+        }
+
+        // Estratégia: Antecipação de Recebíveis
+        if (checkbox_antecipacaoRecebiveis && checkbox_antecipacaoRecebiveis.checked) {
+            estrategias.antecipacaoRecebiveis = {
+                ativar: true,
+                percentualAntecipacao: parseFloat(document.getElementById('perc-antecipacao').value) || 50,
+                taxaDesconto: parseFloat(document.getElementById('taxa-desconto').value) || 1.8,
+                prazoAntecipacao: parseInt(document.getElementById('prazo-antecipacao').value) || 25
+            };
+        }
+
+        // Estratégia: Captação de Capital de Giro
+        if (checkbox_capitalGiro && checkbox_capitalGiro.checked) {
+            estrategias.capitalGiro = {
+                ativar: true,
+                valorCaptacao: parseFloat(document.getElementById('valor-captacao').value) || 100,
+                taxaJuros: parseFloat(document.getElementById('taxa-juros').value) || 2.1,
+                prazoPagamento: parseInt(document.getElementById('prazo-pagamento').value) || 12,
+                carencia: parseInt(document.getElementById('carencia').value) || 3
+            };
+        }
+
+        return estrategias;
+    },
+
+    // Exibe os resultados da simulação de estratégias
+    exibirResultadosEstrategias: function(resultados) {
+        const containerResultados = document.getElementById('resultados-estrategias');
+        if (!containerResultados) return;
+
+        // Tornar visível o container de resultados
+        containerResultados.style.display = 'block';
+
+        // Extrair dados relevantes
+        const estrategiasMitigacao = resultados.estrategiasMitigacao;
+        if (!estrategiasMitigacao) {
+            containerResultados.innerHTML = '<p>Não foi possível calcular o impacto das estratégias de mitigação.</p>';
+            return;
+        }
+
+        // Preencher a tabela de resumo
+        const tabelaResumoCorpo = document.getElementById('tabela-resumo-corpo');
+        if (tabelaResumoCorpo) {
+            tabelaResumoCorpo.innerHTML = '';
+
+            // Adicionar uma linha para cada estratégia
+            Object.entries(estrategiasMitigacao.resultadosEstrategias).forEach(([estrategia, resultado]) => {
+                const tr = document.createElement('tr');
+
+                // Estratégia
+                const tdEstrategia = document.createElement('td');
+                tdEstrategia.style.padding = '10px';
+                tdEstrategia.style.textAlign = 'left';
+                tdEstrategia.style.border = '1px solid #ddd';
+                tdEstrategia.textContent = this.simulador._traduzirNomeEstrategia(estrategia);
+
+                // Impacto no Caixa
+                const tdImpacto = document.createElement('td');
+                tdImpacto.style.padding = '10px';
+                tdImpacto.style.textAlign = 'right';
+                tdImpacto.style.border = '1px solid #ddd';
+                tdImpacto.textContent = this.config.formatarMoeda(resultado.diferencaImpacto);
+
+                // Custo de Implementação
+                const tdCusto = document.createElement('td');
+                tdCusto.style.padding = '10px';
+                tdCusto.style.textAlign = 'right';
+                tdCusto.style.border = '1px solid #ddd';
+                tdCusto.textContent = this.config.formatarMoeda(resultado.custoImplementacao);
+
+                // ROI
+                const tdRoi = document.createElement('td');
+                tdRoi.style.padding = '10px';
+                tdRoi.style.textAlign = 'right';
+                tdRoi.style.border = '1px solid #ddd';
+                tdRoi.textContent = resultado.retornoInvestimento === Infinity ? 
+                    'N/A' : resultado.retornoInvestimento.toFixed(2);
+
+                // Viabilidade
+                const tdViabilidade = document.createElement('td');
+                tdViabilidade.style.padding = '10px';
+                tdViabilidade.style.textAlign = 'center';
+                tdViabilidade.style.border = '1px solid #ddd';
+
+                // Determinar viabilidade
+                const viabilidade = 
+                    resultado.eficaciaPercentual > 50 ? 'Alta' :
+                    resultado.eficaciaPercentual > 20 ? 'Média' :
+                    'Baixa';
+
+                // Adicionar cor conforme viabilidade
+                tdViabilidade.style.backgroundColor = 
+                    viabilidade === 'Alta' ? '#d4edda' :
+                    viabilidade === 'Média' ? '#fff3cd' :
+                    '#f8d7da';
+
+                tdViabilidade.textContent = viabilidade;
+
+                // Adicionar células à linha
+                tr.appendChild(tdEstrategia);
+                tr.appendChild(tdImpacto);
+                tr.appendChild(tdCusto);
+                tr.appendChild(tdRoi);
+                tr.appendChild(tdViabilidade);
+
+                // Adicionar linha à tabela
+                tabelaResumoCorpo.appendChild(tr);
+            });
+        }
+
+        // Aqui você pode adicionar código para preencher os gráficos e outras visualizações
+        // utilizando os dados de estrategiasMitigacao.rankingEficacia, estrategiasMitigacao.impactoCombinado, etc.
+
+        // Preencher a seção de recomendações
+        const conteudoDetalhamento = document.getElementById('conteudo-detalhamento');
+        if (conteudoDetalhamento) {
+            let html = '<h3>Recomendações</h3><ul>';
+
+            estrategiasMitigacao.analiseComparativa.recomendacoes.forEach(recomendacao => {
+                html += `<li class="recomendacao ${recomendacao.tipo}">
+                    ${recomendacao.mensagem}
+                </li>`;
+            });
+
+            html += '</ul>';
+
+            // Adicionar detalhes de cada estratégia
+            html += '<h3>Detalhamento das Estratégias</h3>';
+
+            Object.entries(estrategiasMitigacao.resultadosEstrategias).forEach(([estrategia, resultado]) => {
+                html += `
+                    <div class="estrategia-detalhe">
+                        <h4>${this.simulador._traduzirNomeEstrategia(estrategia)}</h4>
+                        <p>Eficácia: ${resultado.eficaciaPercentual.toFixed(2)}%</p>
+                        <p>Custo anual: ${this.config.formatarMoeda(resultado.custoImplementacao)}</p>
+                        <p>Impacto no capital de giro: ${this.config.formatarMoeda(resultado.diferencaImpacto)}</p>
+                    </div>
+                `;
+            });
+
+            conteudoDetalhamento.innerHTML = html;
+        }
+    },
+
+    // Método para obter os últimos resultados da simulação de estratégias
+    obterUltimosResultadosEstrategias: function() {
+        return this._ultimosResultadosEstrategias;
     },
     
     // Método para obter os últimos resultados da simulação

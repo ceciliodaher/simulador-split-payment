@@ -834,4 +834,5 @@ class SimuladorFluxoCaixa {
 }
 
 // Exportar a classe para uso global
-export { SimuladorFluxoCaixa };
+//export { SimuladorFluxoCaixa };
+// Disponibilizar a classe globalmente sem exportação

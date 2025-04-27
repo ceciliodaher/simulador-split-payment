@@ -61,6 +61,9 @@ window.restaurarPadroes = function() {
 
 			// Carregar as configurações primeiro
 			this._carregarConfiguracoesAnteriores();
+			
+			// Configurar selects existentes
+    		this._configurarSelectsExistentes();
 
 			// Depois configurar event listeners
 			this._configurarEventListeners();
@@ -94,29 +97,44 @@ window.restaurarPadroes = function() {
 
 		// Métodos públicos
 		adicionarSetor: function() {
-			const tabelaSetores = document.getElementById('sector-table').getElementsByTagName('tbody')[0];
-			const novaLinha = document.createElement('tr');
-			novaLinha.id = `setor-${this._nextSetorId}`;
+		const tabelaSetores = document.getElementById('sector-table').getElementsByTagName('tbody')[0];
+		const novaLinha = document.createElement('tr');
+		novaLinha.id = `setor-${this._nextSetorId}`;
 
-			novaLinha.innerHTML = `
-				<td><input type="text" name="setor-nome-${this._nextSetorId}" placeholder="Nome do setor..."></td>
-				<td><input type="number" name="setor-aliquota-${this._nextSetorId}" min="0" max="100" step="0.01" value="26.5"></td>
-				<td><input type="number" name="setor-reducao-${this._nextSetorId}" min="0" max="100" step="0.01" value="0"></td>
-				<td>
-					<select name="setor-cronograma-${this._nextSetorId}">
-						<option value="padrao">Cronograma Padrão</option>
-						<option value="proprio">Cronograma Específico</option>
-					</select>
-				</td>
-				<td>
-					<button type="button" class="btn btn-outline btn-sm" onclick="configurarCronogramaSetor(${this._nextSetorId})">Configurar</button>
-					<button type="button" class="btn btn-accent btn-sm" onclick="removerSetor(${this._nextSetorId})">Remover</button>
-				</td>
-			`;
+		// Obter os setores pré-definidos
+		const setoresOptions = this._obterOpcoesSetores();
 
-			tabelaSetores.appendChild(novaLinha);
-			this._nextSetorId++;
-		},
+		novaLinha.innerHTML = `
+			<td>
+				<select name="setor-nome-${this._nextSetorId}" class="setor-select" data-id="${this._nextSetorId}">
+					<option value="">Selecione um setor...</option>
+					${setoresOptions}
+				</select>
+			</td>
+			<td><input type="number" name="setor-aliquota-${this._nextSetorId}" min="0" max="100" step="0.01" value="26.5"></td>
+			<td><input type="number" name="setor-reducao-${this._nextSetorId}" min="0" max="100" step="0.01" value="0"></td>
+			<td>
+				<select name="setor-cronograma-${this._nextSetorId}">
+					<option value="padrao">Cronograma Padrão</option>
+					<option value="proprio">Cronograma Específico</option>
+				</select>
+			</td>
+			<td>
+				<button type="button" class="btn btn-outline btn-sm" onclick="configurarCronogramaSetor(${this._nextSetorId})">Configurar</button>
+				<button type="button" class="btn btn-accent btn-sm" onclick="removerSetor(${this._nextSetorId})">Remover</button>
+			</td>
+		`;
+
+		tabelaSetores.appendChild(novaLinha);
+
+		// Adicionar evento de mudança para preencher dados automaticamente
+		const selectSetor = document.querySelector(`select[name="setor-nome-${this._nextSetorId}"]`);
+		if (selectSetor) {
+			selectSetor.addEventListener('change', this._preencherDadosSetor.bind(this));
+		}
+
+		this._nextSetorId++;
+	},
 
 		removerSetor: function(id) {
 			if (confirm('Confirma a exclusão deste setor?')) {
@@ -490,6 +508,98 @@ window.restaurarPadroes = function() {
 				SimuladorApp.ConfiguracoesSetoriais.fecharModalCronograma();
 			});
 		},
+		
+		// Arquivo: configuracoes-setoriais.js
+		// Localização: Dentro do objeto SimuladorApp.ConfiguracoesSetoriais
+		// Adicione antes da função _carregarConfiguracoesAnteriores
+
+		_obterOpcoesSetores: function() {
+			// Verificar se SimuladorApp.config existe
+			if (!SimuladorApp || !SimuladorApp.config || !SimuladorApp.config.setores_especiais) {
+				console.error('Configuração de setores não encontrada');
+				return '';
+			}
+
+			let options = '';
+			const setores = SimuladorApp.config.setores_especiais;
+
+			for (const [codigo, setor] of Object.entries(setores)) {
+				options += `<option value="${codigo}">${setor.nome}</option>`;
+			}
+
+			return options;
+		},
+
+		_preencherDadosSetor: function(event) {
+			const select = event.target;
+			const setorId = select.dataset.id;
+			const setorCodigo = select.value;
+
+			if (!setorCodigo || !SimuladorApp.config.setores_especiais[setorCodigo]) {
+				return;
+			}
+
+			const setor = SimuladorApp.config.setores_especiais[setorCodigo];
+
+			// Preencher a alíquota efetiva
+			const inputAliquota = document.querySelector(`input[name="setor-aliquota-${setorId}"]`);
+			if (inputAliquota) {
+				inputAliquota.value = setor.aliquota_efetiva * 100;
+			}
+
+			// Preencher a redução especial
+			const inputReducao = document.querySelector(`input[name="setor-reducao-${setorId}"]`);
+			if (inputReducao) {
+				inputReducao.value = setor.reducao_especial * 100;
+			}
+
+			// Configurar cronograma próprio, se aplicável
+			const selectCronograma = document.querySelector(`select[name="setor-cronograma-${setorId}"]`);
+			if (selectCronograma && setor.cronograma_proprio) {
+				selectCronograma.value = 'proprio';
+			}
+		},
+		
+		_configurarSelectsExistentes: function() {
+		// Substituir inputs de texto existentes por selects
+		const linhasSetores = document.querySelectorAll('#sector-table tbody tr');
+
+		linhasSetores.forEach(linha => {
+			const setorId = linha.id.replace('setor-', '');
+			const inputNome = linha.querySelector(`input[name="setor-nome-${setorId}"]`);
+
+			if (inputNome) {
+				const nomeAtual = inputNome.value;
+				const tdNome = inputNome.parentNode;
+
+				// Criar select com opções
+				const setoresOptions = this._obterOpcoesSetores();
+				const selectHTML = `
+					<select name="setor-nome-${setorId}" class="setor-select" data-id="${setorId}">
+						<option value="">Selecione um setor...</option>
+						${setoresOptions}
+					</select>
+				`;
+
+				tdNome.innerHTML = selectHTML;
+
+				// Tentar selecionar a opção que corresponde ao nome atual
+				const selectNovo = tdNome.querySelector('select');
+				if (selectNovo) {
+					// Procurar opção por texto
+					const options = Array.from(selectNovo.options);
+					const optionCorrespondente = options.find(option => option.text === nomeAtual);
+
+					if (optionCorrespondente) {
+						selectNovo.value = optionCorrespondente.value;
+					}
+
+					// Adicionar evento de mudança
+					selectNovo.addEventListener('change', this._preencherDadosSetor.bind(this));
+				}
+			}
+		});
+	},
 
 		_carregarConfiguracoesAnteriores: function() {
 			const configuracoesAnteriores = localStorage.getItem('configuracoes-setoriais');
@@ -565,6 +675,7 @@ window.restaurarPadroes = function() {
 						// Atualizar o próximo ID
 						this._nextSetorId = maxId + 1;
 					}
+					
 
 					console.log('Configurações carregadas com sucesso do localStorage.');
 				} catch (e) {
