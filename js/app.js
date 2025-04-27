@@ -41,6 +41,48 @@ class ConfiguracaoSplitPayment {
                 aliquota_efetiva: 0.265,
                 reducao_especial: 0.0,
                 cronograma_proprio: false
+            },
+            "agronegocio": {
+                nome: "Agronegócio",
+                aliquota_efetiva: 0.26,
+                reducao_especial: 0.02,
+                cronograma_proprio: true
+            },
+            "saude": {
+                nome: "Saúde e Hospitalar",
+                aliquota_efetiva: 0.25,
+                reducao_especial: 0.03,
+                cronograma_proprio: true
+            },
+            "educacao": {
+                nome: "Educação",
+                aliquota_efetiva: 0.24,
+                reducao_especial: 0.05,
+                cronograma_proprio: true
+            },
+            "construcao": {
+                nome: "Construção Civil",
+                aliquota_efetiva: 0.27,
+                reducao_especial: 0.01,
+                cronograma_proprio: false
+            },
+            "transportes": {
+                nome: "Transportes e Logística",
+                aliquota_efetiva: 0.265,
+                reducao_especial: 0.015,
+                cronograma_proprio: false
+            },
+            "tecnologia": {
+                nome: "Tecnologia da Informação",
+                aliquota_efetiva: 0.27,
+                reducao_especial: 0.0,
+                cronograma_proprio: false
+            },
+            "financeiro": {
+                nome: "Serviços Financeiros",
+                aliquota_efetiva: 0.28,
+                reducao_especial: 0.0,
+                cronograma_proprio: false
             }
         };
         
@@ -460,13 +502,15 @@ class SimuladorFluxoCaixa {
             resultadoSplit.tributosConvencionais * (resultadoSplit.prazoEfetivoPagamentoImposto / 30);
         
         // Calcula a diferença absoluta e percentual
-        const diferencaCapitalGiro = capitalGiroSplit - capitalGiroAtual;
+        // Inverter a ordem dos operandos para refletir corretamente o impacto
+        const diferencaCapitalGiro = capitalGiroAtual - capitalGiroSplit;
         const percentualImpacto = capitalGiroAtual !== 0 ? 
             (diferencaCapitalGiro / Math.abs(capitalGiroAtual)) * 100 : 0;
-        
+
         // Calcula outros indicadores relevantes
-        const necessidadeAdicionalCapitalGiro = diferencaCapitalGiro < 0 ? 
-            Math.abs(diferencaCapitalGiro) : 0;
+        // Agora, um valor positivo indica necessidade adicional de capital
+        const necessidadeAdicionalCapitalGiro = diferencaCapitalGiro > 0 ? 
+            diferencaCapitalGiro : 0;
         
         const custoFinanceiroAnual = necessidadeAdicionalCapitalGiro * 
             (this.config.parametros_fluxo_caixa.taxa_capital_giro * 12);
@@ -567,16 +611,25 @@ class SimuladorFluxoCaixa {
         
         // Calcula o impacto acumulado ao longo do período
         const impactoAcumulado = {
+            // Total da necessidade adicional de capital ao longo do período
             totalNecessidadeCapitalGiro: Object.values(resultadosAnuais)
-                .reduce((acc, val) => acc + val.necessidadeAdicionalCapitalGiro, 0),
-            mediaImpactoAnual: Object.values(resultadosAnuais)
-                .reduce((acc, val) => acc + val.diferencaCapitalGiro, 0) / 
-                (anoFinal - anoInicial + 1),
+                .reduce((acc, val) => acc + (val.necessidadeAdicionalCapitalGiro || 0), 0),
+
+            // Média do impacto anual no capital de giro
+            mediaImpactoAnual: Object.values(resultadosAnuais).length > 0 ?
+                Object.values(resultadosAnuais)
+                    .reduce((acc, val) => acc + (val.diferencaCapitalGiro || 0), 0) / 
+                    Object.values(resultadosAnuais).length : 0,
+
+            // Total do custo financeiro ao longo do período
             custoFinanceiroTotal: Object.values(resultadosAnuais)
-                .reduce((acc, val) => acc + val.custoFinanceiroAnual, 0),
-            impactoMedioMargem: Object.values(resultadosAnuais)
-                .reduce((acc, val) => acc + (val.margemOperacionalOriginal - val.margemOperacionalAjustada), 0) /
-                (anoFinal - anoInicial + 1)
+                .reduce((acc, val) => acc + (val.custoFinanceiroAnual || 0), 0),
+
+            // Impacto médio anual sobre a margem operacional
+            impactoMedioMargem: Object.values(resultadosAnuais).length > 0 ?
+                Object.values(resultadosAnuais)
+                    .reduce((acc, val) => acc + ((dadosNorm.margem || 0) - (val.margemOperacionalAjustada || 0)), 0) /
+                    Object.values(resultadosAnuais).length : 0
         };
         
         // Resultados da projeção temporal
@@ -779,19 +832,23 @@ const SimuladorApp = {
     
     // Ações a executar quando mudar de aba
     aoMudarAba: function(tabId) {
+        console.log(`Aba alterada para: ${tabId}`);
+
         switch (tabId) {
             case 'memoria-calculo':
                 this.atualizarMemoriaCalculo();
                 break;
             case 'configuracoes-setoriais':
-                this.inicializarConfiguracoesSetoriais();
+                // Garantir que o módulo seja inicializado
+                if (SimuladorApp.ConfiguracoesSetoriais) {
+                    SimuladorApp.ConfiguracoesSetoriais.inicializar();
+                    console.log('Módulo de configurações setoriais inicializado');
+                } else {
+                    console.error('Módulo de configurações setoriais não encontrado');
+                }
                 break;
             case 'estrategias-mitigacao':
-                // Se tivermos resultados da última simulação, podemos usá-los
-                if (this._ultimosResultados) {
-                    // Configurar a interface de estratégias com base nos resultados
-                    // ...
-                }
+                // Código existente...
                 break;
         }
     },
@@ -1065,52 +1122,63 @@ const SimuladorApp = {
         }
     },
     
-    // Realiza a simulação
+    // No arquivo app.js, substituir a função realizarSimulacao pelo código abaixo:
     realizarSimulacao: function() {
         // Verificar se o simulador foi inicializado
         if (!this.simulador) {
+            console.error('Simulador não inicializado');
             alert('O simulador ainda não foi inicializado. Tente novamente em alguns instantes.');
             return;
         }
-        
-        // Coletar dados do formulário
-        const dados = this.coletarDadosFormulario();
-        
-        // Validar dados
-        if (!this.validarDados(dados)) {
-            alert('Por favor, preencha todos os campos obrigatórios corretamente.');
-            return;
-        }
-        
-        // Configurar opções de simulação
-        const opcoesSimulacao = {
-            anoInicial: parseInt(dados.dataInicial.split('-')[0], 10),
-            anoFinal: parseInt(dados.dataFinal.split('-')[0], 10),
-            cenario: dados.cenario,
-            taxaCrescimento: dados.cenario === 'personalizado' ? 
-                parseFloat(dados.taxaCrescimento) / 100 : null,
-            simularEstrategias: false  // Inicialmente sem estratégias
-        };
-        
-        // Executar simulação
+
         try {
-            console.log('Iniciando simulação com dados:', dados);
-            const resultados = this.simulador.simular(dados, opcoesSimulacao);
-            console.log('Simulação concluída:', resultados);
-            
-            // Armazenar resultados para uso em outras partes do sistema
-            this._ultimosResultados = resultados;
-            
-            // Exibir resultados
-            this.exibirResultados(resultados);
-            
-            // Atualizar explicitamente a memória de cálculo
-            this.atualizarMemoriaCalculo();
-            
-            return resultados;
+            // Coletar dados do formulário com tratamento de erros
+            const dados = this.coletarDadosFormulario();
+            console.log('Dados coletados:', dados);
+
+            // Validar dados
+            if (!this.validarDados(dados)) {
+                console.error('Validação de dados falhou');
+                alert('Por favor, preencha todos os campos obrigatórios corretamente.');
+                return;
+            }
+
+            // Configurar opções de simulação
+            const opcoesSimulacao = {
+                anoInicial: parseInt(dados.dataInicial?.split('-')[0] || '2026', 10),
+                anoFinal: parseInt(dados.dataFinal?.split('-')[0] || '2033', 10),
+                cenario: dados.cenario || 'moderado',
+                taxaCrescimento: dados.cenario === 'personalizado' ? 
+                    parseFloat(dados.taxaCrescimento) / 100 : null,
+                simularEstrategias: false
+            };
+
+            console.log('Iniciando simulação com opções:', opcoesSimulacao);
+
+            // Executar simulação com captura de exceções específicas
+            try {
+                const resultados = this.simulador.simular(dados, opcoesSimulacao);
+                console.log('Simulação concluída com sucesso:', resultados);
+
+                // Armazenar resultados para uso em outras partes do sistema
+                this._ultimosResultados = resultados;
+
+                // Exibir resultados
+                this.exibirResultados(resultados);
+
+                // Atualizar explicitamente a memória de cálculo
+                this.atualizarMemoriaCalculo();
+
+                return resultados;
+            } catch (error) {
+                console.error('Erro específico na simulação:', error);
+                console.error('Stack trace:', error.stack);
+                alert('Ocorreu um erro específico ao executar a simulação. Verifique o console para mais detalhes.');
+            }
         } catch (error) {
-            console.error('Erro ao executar a simulação:', error);
-            alert('Ocorreu um erro ao executar a simulação. Verifique o console para mais detalhes.');
+            console.error('Erro geral na simulação:', error);
+            console.error('Stack trace:', error.stack);
+            alert('Ocorreu um erro geral ao preparar a simulação. Verifique o console para mais detalhes.');
         }
     },
     
@@ -1242,9 +1310,12 @@ const SimuladorApp = {
         const impacto = resultados.resultadoBase;
         const projecao = resultados.projecaoTemporal;
         
+        // Log para depuração
+        console.log('Exibindo resultados:', resultados);
+        
         // Formatar valores para exibição
-        const formatarValor = valor => this.config.formatarMoeda(valor);
-        const formatarPercent = valor => this.config.formatarPercentual(valor);
+        const formatarValor = val => this.config.formatarMoeda(val || 0);
+        const formatarPercent = val => this.config.formatarPercentual(val || 0);
         
         // Construir HTML dos resultados
         let html = `
@@ -1252,7 +1323,7 @@ const SimuladorApp = {
                 <h3>Resultados da Simulação</h3>
                 
                 <div class="result-section">
-                    <h4>Impacto Inicial (${projecao.parametros.anoInicial})</h4>
+                    <h4>Impacto Inicial (${projecao?.parametros?.anoInicial || impacto.ano || '2026'})</h4>
                     <table class="result-table">
                         <tr>
                             <td>Percentual de Implementação:</td>
@@ -1260,7 +1331,7 @@ const SimuladorApp = {
                         </tr>
                         <tr>
                             <td>Diferença no Capital de Giro:</td>
-                            <td class="${impacto.diferencaCapitalGiro >= 0 ? 'positive' : 'negative'}">
+                            <td class="${(impacto.diferencaCapitalGiro || 0) >= 0 ? 'negative' : 'positive'}">
                                 ${formatarValor(impacto.diferencaCapitalGiro)}
                             </td>
                         </tr>
@@ -1283,12 +1354,12 @@ const SimuladorApp = {
                 
                 <div class="result-section">
                     <h4>Projeção do Impacto</h4>
-                    <p>Impacto acumulado ao longo do período ${projecao.parametros.anoInicial}-${projecao.parametros.anoFinal}:</p>
-                    <table class="result-table">
-                        <tr>
-                            <td>Necessidade Total de Capital:</td>
-                            <td>${formatarValor(projecao.impactoAcumulado.totalNecessidadeCapitalGiro)}</td>
-                        </tr>
+                        <p>Impacto acumulado ao longo do período ${projecao?.parametros?.anoInicial || '2026'}-${projecao?.parametros?.anoFinal || '2033'}:</p>
+                        <table class="result-table">
+                            <tr>
+                                <td>Necessidade Total de Capital:</td>
+                                <td>${formatarValor(projecao?.impactoAcumulado?.totalNecessidadeCapitalGiro)}</td>
+                            </tr>
                         <tr>
                             <td>Custo Financeiro Total:</td>
                             <td>${formatarValor(projecao.impactoAcumulado.custoFinanceiroTotal)}</td>
