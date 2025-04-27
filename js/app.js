@@ -1076,6 +1076,7 @@ const SimuladorApp = {
     
     // Inicializa a aplicação
     // No método inicializar do SimuladorApp
+    // No método inicializar do SimuladorApp
     inicializar: function() {
         console.log('Inicializando Simulador de Impacto do Split Payment...');
 
@@ -1086,15 +1087,13 @@ const SimuladorApp = {
         this.simulador = new SimuladorFluxoCaixa(this.config);
 
         // Configurar navegação de abas
-        //this.inicializarNavegacao();
         window.aoMudarAba = this.aoMudarAba.bind(this);
 
-        // Configurar inputs de formatação - MODIFICADO
+        // Aplicar a nova formatação monetária para os campos específicos
         if (window.FormatacaoHelper) {
-            window.FormatacaoHelper.configurarTodosInputs(this.config);
+            window.FormatacaoHelper.inicializarFormatacaoMonetaria();
         } else {
             console.error('FormatacaoHelper não encontrado!');
-            this.inicializarFormatacao(); // Fallback para o método original
         }
 
         // Configurar event listeners
@@ -1108,7 +1107,7 @@ const SimuladorApp = {
 
         // Inicializar módulo de configurações setoriais quando necessário
         this.configurarModuloConfiguracoesSetoriais();
-        
+
         // Inicializar aba de estratégias de mitigação
         this.inicializarAbaEstrategias();
 
@@ -1256,40 +1255,40 @@ const SimuladorApp = {
     // Inicializa formatação de inputs
     inicializarFormatacao: function() {
         // Formatar inputs monetários
-        document.querySelectorAll('.money-input').forEach(input => {
+        //document.querySelectorAll('.money-input').forEach(input => {
             // Manipulador para formatação monetária
-            input.addEventListener('input', function(e) {
+            //input.addEventListener('input', function(e) {
                 // Permite apenas números e uma vírgula
-                this.value = this.value.replace(/[^\d,]/g, '');
+                //this.value = this.value.replace(/[^\d,]/g, '');
                 
                 // Garante apenas uma vírgula
-                const partes = this.value.split(',');
-                if (partes.length > 2) {
-                    this.value = partes[0] + ',' + partes.slice(1).join('');
+                //const partes = this.value.split(',');
+                //if (partes.length > 2) {
+                    //this.value = partes[0] + ',' + partes.slice(1).join('');
                 }
                 
                 // Limita a 2 casas decimais
-                if (partes.length === 2 && partes[1].length > 2) {
-                    this.value = partes[0] + ',' + partes[1].substring(0, 2);
-                }
-            });
+                //if (partes.length === 2 && partes[1].length > 2) {
+                    //this.value = partes[0] + ',' + partes[1].substring(0, 2);
+                //}
+            //});
             
             // Formatação ao perder foco
-            input.addEventListener('blur', function() {
-                if (this.value) {
-                    let valor = this.value.replace(/\./g, '').replace(',', '.');
-                    valor = parseFloat(valor) || 0;
-                    this.value = SimuladorApp.config.formatarMoeda(valor);
-                } else {
-                    this.value = SimuladorApp.config.formatarMoeda(0);
-                }
-            });
+            //input.addEventListener('blur', function() {
+                //if (this.value) {
+                    //let valor = this.value.replace(/\./g, '').replace(',', '.');
+                    //valor = parseFloat(valor) || 0;
+                    //this.value = SimuladorApp.config.formatarMoeda(valor);
+                //} else {
+                    //this.value = SimuladorApp.config.formatarMoeda(0);
+                //}
+            //});
             
             // Formatar valor inicial
-            if (input.value) {
-                input.dispatchEvent(new Event('blur'));
-            }
-        });
+            //if (input.value) {
+                //input.dispatchEvent(new Event('blur'));
+            //}
+        //});
         
         // Formatar inputs percentuais
         document.querySelectorAll('.percent-input').forEach(input => {
@@ -1509,6 +1508,14 @@ const SimuladorApp = {
                     alert('Configurações restauradas com sucesso!');
                 }
             });
+        }
+        
+        // Formatação específica para campos monetários após a configuração de todos os eventos
+        if (window.FormatacaoHelper) {
+            window.FormatacaoHelper.formatarCamposMonetariosEspecificos(
+                ['faturamento', 'creditos'], 
+                this.config
+            );
         }
     },
     
@@ -1844,53 +1851,54 @@ const SimuladorApp = {
     },
     
     // Coleta dados do formulário
+    // No método coletarDadosFormulario do SimuladorApp
     coletarDadosFormulario: function() {
         // Dados básicos da empresa
         const faturamentoEl = document.getElementById('faturamento');
-        const faturamento = this.config.converterMoedaParaNumero(faturamentoEl.value);
-        
+        const faturamento = FormatacaoHelper.extrairValorNumerico(faturamentoEl.value);
+
         const periodoEl = document.querySelector('input[name="periodo"]:checked');
         const periodo = periodoEl ? periodoEl.value : 'mensal';
-        
+
         const setor = document.getElementById('setor').value;
         const regime = document.getElementById('regime').value;
-        
+
         const margemEl = document.getElementById('margem');
         const margem = this.config.converterPercentualParaNumero(margemEl.value);
-        
+
         // Ciclo financeiro
         const pmr = parseInt(document.getElementById('pmr').value, 10) || 0;
         const pmp = parseInt(document.getElementById('pmp').value, 10) || 0;
         const pme = parseInt(document.getElementById('pme').value, 10) || 0;
         const cicloFinanceiro = parseInt(document.getElementById('ciclo-financeiro').value, 10) || 0;
-        
+
         const percVistaEl = document.getElementById('perc-vista');
         const percVista = this.config.converterPercentualParaNumero(percVistaEl.value);
-        
+
         const percPrazoEl = document.getElementById('perc-prazo');
         const percPrazo = this.config.converterPercentualParaNumero(percPrazoEl.value);
-        
+
         // Parâmetros tributários
         const aliquotaEl = document.getElementById('aliquota');
         const aliquota = this.config.converterPercentualParaNumero(aliquotaEl.value);
-        
+
         const tipoOperacao = document.getElementById('tipo-operacao').value;
-        
+
         const creditosEl = document.getElementById('creditos');
-        const creditos = this.config.converterMoedaParaNumero(creditosEl.value);
-        
+        const creditos = FormatacaoHelper.extrairValorNumerico(creditosEl.value);
+
         // Parâmetros de simulação
         const dataInicial = document.getElementById('data-inicial').value;
         const dataFinal = document.getElementById('data-final').value;
         const cenario = document.getElementById('cenario').value;
-        
+
         // Parâmetros de cenário personalizado
         let taxaCrescimento = null;
         if (cenario === 'personalizado') {
             const taxaCrescimentoEl = document.getElementById('taxa-crescimento');
             taxaCrescimento = parseFloat(taxaCrescimentoEl.value);
         }
-        
+
         // Retornar objeto com todos os dados
         return {
             faturamento,
@@ -2235,6 +2243,22 @@ const SimuladorApp = {
         }
     }
 };
+
+// Configuração específica e direta para os campos monetários
+setTimeout(() => {
+    const campoFaturamento = document.getElementById('faturamento');
+    const campoCreditos = document.getElementById('creditos');
+    
+    if (window.FormatacaoHelper && campoFaturamento) {
+        console.log('Aplicando formatação monetária ao campo Faturamento');
+        window.FormatacaoHelper.formatarInputMonetario(campoFaturamento, this.config);
+    }
+    
+    if (window.FormatacaoHelper && campoCreditos) {
+        console.log('Aplicando formatação monetária ao campo Créditos');
+        window.FormatacaoHelper.formatarInputMonetario(campoCreditos, this.config);
+    }
+}, 500); // Atraso para garantir que os elementos já estão no DOM
 
 // Inicializar automaticamente quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
