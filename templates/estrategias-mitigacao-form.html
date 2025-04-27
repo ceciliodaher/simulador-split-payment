@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Impacto do Split Payment no Fluxo de Caixa</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #e74c3c;
+            --dark-accent: #f39c12;
+            --highlight-color: #9b59b6;
+            --light-bg: #f8f9fa;
+            --dark-text: #343a40;
+            --gray-text: #6c757d;
+            --light-border: #dee2e6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .logo {
+            height: 60px;
+            margin-right: 20px;
+        }
+
+        h1, h2, h3 {
+            color: var(--primary-color);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            margin: 15px 0;
+            font-size: 1.5em;
+        }
+
+        .tab-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-text);
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .group-box {
+            border: 1px solid var(--light-border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .group-box h3 {
+            color: var(--dark-text);
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+            margin-bottom: 15px;
+        }
+
+        .form-column {
+            flex: 1;
+            min-width: 250px;
+            padding: 0 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--light-border);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group input {
+            flex: 1;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group-append {
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group-text {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid var(--light-border);
+            border-left: none;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+            color: var(--gray-text);
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            min-width: 200px;
+            flex: 1;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        .strategy-params {
+            display: none;
+            background-color: var(--light-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .strategy-params.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .help-text {
+            display: block;
+            font-size: 12px;
+            color: var(--gray-text);
+            margin-top: 5px;
+        }
+
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button.primary {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+            color: white;
+            box-shadow: 0 4px 6px rgba(46, 204, 113, 0.3);
+        }
+
+        button.outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        button.primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(52, 152, 219, 0.4);
+        }
+
+        button.secondary:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(46, 204, 113, 0.4);
+        }
+
+        button.outline:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--gray-text);
+            font-size: 12px;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid var(--light-border);
+        }
+
+        /* Subtabs para visualização de resultados */
+        .subtab-container {
+            margin-top: 20px;
+        }
+
+        .subtab-buttons {
+            display: flex;
+            border-bottom: 1px solid var(--light-border);
+            margin-bottom: 15px;
+        }
+
+        .subtab-button {
+            padding: 8px 15px;
+            background: #f5f5f5;
+            border: 1px solid var(--light-border);
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            margin-right: 4px;
+            font-size: 14px;
+            color: var(--gray-text);
+            transition: all 0.3s ease;
+        }
+
+        .subtab-button.active {
+            color: var(--primary-color);
+            background: white;
+            border-bottom: 2px solid var(--primary-color);
+            font-weight: 600;
+        }
+
+        .subtab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid var(--light-border);
+            border-radius: 0 4px 4px 4px;
+            background-color: white;
+        }
+
+        .subtab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .form-column {
+                flex: 100%;
+            }
+            
+            .checkbox-group {
+                flex-direction: column;
+            }
+            
+            .checkbox-item {
+                min-width: 100%;
+            }
+            
+            .buttons-container {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="/api/placeholder/60/60" alt="Logo Expertzy" class="logo">
+            <h1>Simulador de Impacto do Split Payment no Fluxo de Caixa</h1>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button">Simulação Principal</button>
+                <button class="tab-button">Configurações Setoriais</button>
+                <button class="tab-button active">Estratégias de Mitigação</button>
+                <button class="tab-button">Memória de Cálculo</button>
+                <button class="tab-button">Ajuda e Documentação</button>
+            </div>
+
+            <div class="tab-content active">
+                <form id="estrategias-form">
+                    <!-- Seleção de Estratégias -->
+                    <div class="group-box">
+                        <h3>Seleção de Estratégias de Mitigação</h3>
+                        <p style="margin-bottom: 15px; color: var(--gray-text);">Selecione as estratégias que deseja simular para mitigar o impacto do Split Payment no fluxo de caixa da empresa.</p>
+                        
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="ajuste-precos" name="estrategias" value="ajuste-precos">
+                                <label for="ajuste-precos">Ajuste de preços</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="renegociacao-prazos" name="estrategias" value="renegociacao-prazos">
+                                <label for="renegociacao-prazos">Renegociação de prazos</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="antecipacao-recebiveis" name="estrategias" value="antecipacao-recebiveis">
+                                <label for="antecipacao-recebiveis">Antecipação de recebíveis</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="capital-giro" name="estrategias" value="capital-giro">
+                                <label for="capital-giro">Captação de capital de giro</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mix-produtos" name="estrategias" value="mix-produtos">
+                                <label for="mix-produtos">Otimização do mix de produtos/serviços</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="meios-pagamento" name="estrategias" value="meios-pagamento">
+                                <label for="meios-pagamento">Diversificação dos meios de pagamento</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parâmetros de Ajuste de Preços -->
+                    <div id="params-ajuste-precos" class="strategy-params">
+                        <h3>Parâmetros de Ajuste de Preços</h3>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="perc-aumento">Percentual de aumento (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="perc-aumento" name="perc-aumento" min="0" max="100" step="0.1" value="5.0">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Aumento médio a ser aplicado nos preços dos produtos/serviços</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="elasticidade">Elasticidade-preço estimada:</label>
+                                    <input type="number" id="elasticidade" name="elasticidade" min="-10" max="0" step="0.1" value="-1.2">
+                                    <span class="help-text">Valor negativo que indica a sensibilidade da demanda às alterações de preço</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="impacto-vendas">Impacto estimado nas vendas (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="impacto-vendas" name="impacto-vendas" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Calculado automaticamente com base na elasticidade</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="estrategia-preco">Estratégia de repasse:</label>
+                                    <select id="estrategia-preco" name="estrategia-preco">
+                                        <option value="gradual">Repasse gradual</option>
+                                        <option value="imediato">Repasse imediato</option>
+                                        <option value="seletivo">Repasse seletivo por produto</option>
+                                        <option value="segmentado">Repasse segmentado por cliente</option>
+                                    </select>
+                                    <span class="help-text">Método de implementação do ajuste de preços</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="periodo-ajuste">Período de ajuste:</label>
+                                    <select id="periodo-ajuste" name="periodo-ajuste">
+                                        <option value="1">1 mês</option>
+                                        <option value="3" selected>3 meses</option>
+                                        <option value="6">6 meses</option>
+                                        <option value="12">12 meses</option>
+                                    </select>
+                                    <span class="help-text">Período para implementação completa do ajuste de preços</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parâmetros de Renegociação de Prazos -->
+                    <div id="params-renegociacao-prazos" class="strategy-params">
+                        <h3>Parâmetros de Renegociação de Prazos com Fornecedores</h3>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="aumento-prazo">Aumento desejado no prazo (dias):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="aumento-prazo" name="aumento-prazo" min="0" step="1" value="15">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">dias</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Aumento médio desejado no prazo de pagamento a fornecedores</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="perc-fornecedores">Percentual do volume de compras afetado (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="perc-fornecedores" name="perc-fornecedores" min="0" max="100" step="1" value="60">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Percentual do volume total de compras que pode ser renegociado</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="contrapartidas">Contrapartidas oferecidas:</label>
+                                    <select id="contrapartidas" name="contrapartidas">
+                                        <option value="nenhuma">Nenhuma contrapartida</option>
+                                        <option value="volume">Aumento de volume de compras</option>
+                                        <option value="exclusividade">Acordo de exclusividade</option>
+                                        <option value="contrato">Contrato de longo prazo</option>
+                                        <option value="preco">Revisão de preço (para mais)</option>
+                                    </select>
+                                    <span class="help-text">Contrapartida oferecida em troca do aumento no prazo</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="custo-contrapartida">Custo estimado da contrapartida (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="custo-contrapartida" name="custo-contrapartida" min="0" max="100" step="0.1" value="0">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Custo estimado da contrapartida em relação ao valor negociado</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="prazo-implementacao">Prazo para implementação:</label>
+                                    <select id="prazo-implementacao" name="prazo-implementacao">
+                                        <option value="1">1 mês</option>
+                                        <option value="2" selected>2 meses</option>
+                                        <option value="3">3 meses</option>
+                                        <option value="6">6 meses</option>
+                                    </select>
+                                    <span class="help-text">Tempo necessário para implementar as mudanças</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parâmetros de Antecipação de Recebíveis -->
+                    <div id="params-antecipacao-recebiveis" class="strategy-params">
+                        <h3>Parâmetros para Antecipação de Recebíveis</h3>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="perc-antecipacao">Percentual das vendas a prazo a antecipar (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="perc-antecipacao" name="perc-antecipacao" min="0" max="100" step="1" value="50">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Percentual das vendas a prazo que será antecipado</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="taxa-desconto">Taxa de desconto (% a.m.):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="taxa-desconto" name="taxa-desconto" min="0" max="100" step="0.1" value="1.8">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">% a.m.</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Taxa mensal cobrada pela instituição financeira para antecipar os recebíveis</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="prazo-antecipacao">Prazo médio de antecipação (dias):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="prazo-antecipacao" name="prazo-antecipacao" min="0" step="1" value="25">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">dias</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Número médio de dias que serão antecipados</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="custo-efetivo">Custo efetivo da antecipação (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="custo-efetivo" name="custo-efetivo" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Calculado automaticamente com base no prazo e na taxa</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="modalidade-antecipacao">Modalidade de antecipação:</label>
+                                    <select id="modalidade-antecipacao" name="modalidade-antecipacao">
+                                        <option value="duplicatas">Duplicatas e títulos</option>
+                                        <option value="cartao">Recebíveis de cartão</option>
+                                        <option value="ambos" selected>Ambos</option>
+                                    </select>
+                                    <span class="help-text">Tipo de recebível a ser antecipado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parâmetros de Captação de Capital de Giro -->
+                    <div id="params-capital-giro" class="strategy-params">
+                        <h3>Parâmetros para Captação de Capital de Giro</h3>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="valor-captacao">Valor a captar (% do faturamento mensal):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="valor-captacao" name="valor-captacao" min="0" max="1000" step="1" value="100">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Valor a captar como percentual do faturamento mensal médio</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="taxa-juros">Taxa de juros (% a.m.):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="taxa-juros" name="taxa-juros" min="0" max="100" step="0.1" value="2.1">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">% a.m.</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Taxa mensal de juros para a linha de capital de giro</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="prazo-pagamento">Prazo para pagamento:</label>
+                                    <select id="prazo-pagamento" name="prazo-pagamento">
+                                        <option value="6">6 meses</option>
+                                        <option value="12" selected>12 meses</option>
+                                        <option value="18">18 meses</option>
+                                        <option value="24">24 meses</option>
+                                        <option value="36">36 meses</option>
+                                    </select>
+                                    <span class="help-text">Prazo total para pagamento do empréstimo</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="carencia">Período de carência:</label>
+                                    <select id="carencia" name="carencia">
+                                        <option value="0">Sem carência</option>
+                                        <option value="1">1 mês</option>
+                                        <option value="2">2 meses</option>
+                                        <option value="3" selected>3 meses</option>
+                                        <option value="6">6 meses</option>
+                                    </select>
+                                    <span class="help-text">Período de carência para início do pagamento das parcelas</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="modalidade-amortizacao">Modalidade de amortização:</label>
+                                    <select id="modalidade-amortizacao" name="modalidade-amortizacao">
+                                        <option value="sac">SAC (amortização constante)</option>
+                                        <option value="price" selected>PRICE (parcelas iguais)</option>
+                                    </select>
+                                    <span class="help-text">Sistema de amortização do empréstimo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parâmetros de Otimização do Mix de Produtos/Serviços -->
+                    <div id="params-mix-produtos" class="strategy-params">
+                        <h3>Parâmetros para Otimização do Mix de Produtos/Serviços</h3>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="perc-ajuste-mix">Percentual do portfólio a ajustar (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="perc-ajuste-mix" name="perc-ajuste-mix" min="0" max="100" step="1" value="30">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Percentual do portfólio de produtos/serviços que será ajustado</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="foco-ajuste">Foco do ajuste:</label>
+                                    <select id="foco-ajuste" name="foco-ajuste">
+                                        <option value="margem">Produtos de maior margem</option>
+                                        <option value="giro">Produtos de maior giro</option>
+                                        <option value="ciclo" selected>Produtos com ciclo financeiro menor</option>
+                                        <option value="balanceado">Balanceamento de portfólio</option>
+                                    </select>
+                                    <span class="help-text">Estratégia principal para ajuste do mix</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="impacto-receita">Impacto estimado na receita (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="impacto-receita" name="impacto-receita" min="-100" max="100" step="0.1" value="-5">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Impacto estimado na receita total após a otimização</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="impacto-margem">Impacto estimado na margem média (p.p.):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="impacto-margem" name="impacto-margem" min="-100" max="100" step="0.1" value="3.5">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">p.p.</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Variação da margem média em pontos percentuais</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="prazo-otimizacao">Prazo para implementação completa:</label>
+                                    <select id="prazo-otimizacao" name="prazo-otimizacao">
+                                        <option value="1">1 mês</option>
+                                        <option value="3">3 meses</option>
+                                        <option value="6" selected>6 meses</option>
+                                        <option value="12">12 meses</option>
+                                    </select>
+                                    <span class="help-text">Tempo necessário para implementar a otimização do mix</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parâmetros de Diversificação de Meios de Pagamento -->
+                    <div id="params-meios-pagamento" class="strategy-params">
+                        <h3>Parâmetros para Diversificação dos Meios de Pagamento</h3>
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="dist-atual-vista">Distribuição atual - À vista (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="dist-atual-vista" name="dist-atual-vista" min="0" max="100" step="1" value="30">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="dist-atual-prazo">Distribuição atual - A prazo (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="dist-atual-prazo" name="dist-atual-prazo" min="0" max="100" step="1" value="70" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label><strong>Distribuição Desejada</strong></label>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="dist-nova-vista">À vista (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="dist-nova-vista" name="dist-nova-vista" min="0" max="100" step="1" value="40">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="dist-nova-30dias">30 dias (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="dist-nova-30dias" name="dist-nova-30dias" min="0" max="100" step="1" value="30">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="dist-nova-60dias">60 dias (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="dist-nova-60dias" name="dist-nova-60dias" min="0" max="100" step="1" value="20">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="dist-nova-90dias">90 dias (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="dist-nova-90dias" name="dist-nova-90dias" min="0" max="100" step="1" value="10">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="dist-nova-total">Total (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="dist-nova-total" name="dist-nova-total" min="0" max="100" step="1" value="100" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Soma deve ser igual a 100%</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="taxa-incentivo">Taxa de incentivo para à vista (%):</label>
+                                    <div class="input-group">
+                                        <input type="number" id="taxa-incentivo" name="taxa-incentivo" min="0" max="100" step="0.1" value="3">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <span class="help-text">Desconto oferecido para pagamentos à vista</span>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="prazo-implementacao-meios">Prazo para implementação:</label>
+                                    <select id="prazo-implementacao-meios" name="prazo-implementacao-meios">
+                                        <option value="1">1 mês</option>
+                                        <option value="2" selected>2 meses</option>
+                                        <option value="3">3 meses</option>
+                                        <option value="6">6 meses</option>
+                                    </select>
+                                    <span class="help-text">Tempo necessário para implementar a nova distribuição</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="buttons-container">
+                        <button type="button" class="primary" id="btn-simular">Simular Estratégias</button>
+                        <button type="button" class="secondary" id="btn-comparar">Comparar Eficácia</button>
+                        <button type="reset" class="outline" id="btn-limpar">Limpar Formulário</button>
+                    </div>
+                </form>
+
+                <!-- Área de Resultados (inicialmente oculta) -->
+                <div id="resultados-estrategias" style="margin-top: 30px; display: none;">
+                    <div class="group-box">
+                        <h3>Resultados da Simulação</h3>
+                        <p id="resultado-descricao" style="margin-bottom: 15px;">Resultados da simulação das estratégias selecionadas.</p>
+                        
+                        <!-- Área para exibição de gráficos e tabelas -->
+                        <div class="subtab-container">
+                            <div class="subtab-buttons">
+                                <button class="subtab-button active" data-subtab="resumo">Resumo</button>
+                                <button class="subtab-button" data-subtab="fluxo-caixa">Fluxo de Caixa</button>
+                                <button class="subtab-button" data-subtab="comparativo">Comparativo</button>
+                                <button class="subtab-button" data-subtab="detalhamento">Detalhamento</button>
+                            </div>
+                            
+                            <div id="resumo" class="subtab-content active">
+                                <h4 style="margin-bottom: 15px;">Resumo do Impacto das Estratégias</h4>
+                                <div id="grafico-resumo" style="height: 300px; background-color: #f9f9f9; border: 1px dashed #ccc; display: flex; justify-content: center; align-items: center;">
+                                    [Gráfico de Resumo das Estratégias]
+                                </div>
+                                <div style="margin-top: 20px;">
+                                    <table style="width: 100%; border-collapse: collapse;">
+                                        <thead>
+                                            <tr style="background-color: #f5f5f5;">
+                                                <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Estratégia</th>
+                                                <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Impacto no Caixa</th>
+                                                <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Custo de Implementação</th>
+                                                <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">ROI</th>
+                                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Viabilidade</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabela-resumo-corpo">
+                                            <!-- Será preenchido via JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div id="fluxo-caixa" class="subtab-content">
+                                <h4 style="margin-bottom: 15px;">Projeção de Fluxo de Caixa</h4>
+                                <div id="grafico-fluxo" style="height: 300px; background-color: #f9f9f9; border: 1px dashed #ccc; display: flex; justify-content: center; align-items: center;">
+                                    [Gráfico de Fluxo de Caixa Projetado]
+                                </div>
+                            </div>
+                            
+                            <div id="comparativo" class="subtab-content">
+                                <h4 style="margin-bottom: 15px;">Comparativo de Eficácia das Estratégias</h4>
+                                <div id="grafico-comparativo" style="height: 300px; background-color: #f9f9f9; border: 1px dashed #ccc; display: flex; justify-content: center; align-items: center;">
+                                    [Gráfico Comparativo de Estratégias]
+                                </div>
+                            </div>
+                            
+                            <div id="detalhamento" class="subtab-content">
+                                <h4 style="margin-bottom: 15px;">Detalhamento das Estratégias</h4>
+                                <div id="conteudo-detalhamento">
+                                    <!-- Será preenchido via JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 Expertzy Inteligência Tributária
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Exibir/ocultar parâmetros com base nas estratégias selecionadas
+            const checkboxes = document.querySelectorAll('input[name="estrategias"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const paramId = `params-${this.value}`;
+                    const paramDiv = document.getElementById(paramId);
+                    if (paramDiv) {
+                        if (this.checked) {
+                            paramDiv.classList.add('active');
+                        } else {
+                            paramDiv.classList.remove('active');
+                        }
+                    }
+                });
+            });
+
+            // Cálculo automático do impacto nas vendas baseado na elasticidade
+            const elasticidadeInput = document.getElementById('elasticidade');
+            const percAumentoInput = document.getElementById('perc-aumento');
+            const impactoVendasInput = document.getElementById('impacto-vendas');
+            
+            function calcularImpactoVendas() {
+                const elasticidade = parseFloat(elasticidadeInput.value) || 0;
+                const percAumento = parseFloat(percAumentoInput.value) || 0;
+                const impacto = elasticidade * percAumento;
+                impactoVendasInput.value = impacto.toFixed(2);
+            }
+            
+            elasticidadeInput.addEventListener('input', calcularImpactoVendas);
+            percAumentoInput.addEventListener('input', calcularImpactoVendas);
+            calcularImpactoVendas(); // Calcular inicialmente
+            
+            // Cálculo automático do custo efetivo da antecipação
+            const taxaDescontoInput = document.getElementById('taxa-desconto');
+            const prazoAntecipacaoInput = document.getElementById('prazo-antecipacao');
+            const custoEfetivoInput = document.getElementById('custo-efetivo');
+            
+            function calcularCustoEfetivo() {
+                const taxaMensal = parseFloat(taxaDescontoInput.value) || 0;
+                const prazoAntecipacao = parseFloat(prazoAntecipacaoInput.value) || 0;
+                const custoEfetivo = (taxaMensal / 30) * prazoAntecipacao;
+                custoEfetivoInput.value = custoEfetivo.toFixed(2);
+            }
+            
+            taxaDescontoInput.addEventListener('input', calcularCustoEfetivo);
+            prazoAntecipacaoInput.addEventListener('input', calcularCustoEfetivo);
+            calcularCustoEfetivo(); // Calcular inicialmente
+            
+            // Atualização automática das vendas a prazo
+            const distAtualVistaInput = document.getElementById('dist-atual-vista');
+            const distAtualPrazoInput = document.getElementById('dist-atual-prazo');
+            
+            function atualizarDistAtualPrazo() {
+                const distVista = parseFloat(distAtualVistaInput.value) || 0;
+                const distPrazo = 100 - distVista;
+                distAtualPrazoInput.value = distPrazo.toFixed(0);
+            }
+            
+            distAtualVistaInput.addEventListener('input', atualizarDistAtualPrazo);
+            atualizarDistAtualPrazo(); // Atualizar inicialmente
+            
+            // Validação do total da distribuição desejada
+            const distNovaVistaInput = document.getElementById('dist-nova-vista');
+            const distNova30DiasInput = document.getElementById('dist-nova-30dias');
+            const distNova60DiasInput = document.getElementById('dist-nova-60dias');
+            const distNova90DiasInput = document.getElementById('dist-nova-90dias');
+            const distNovaTotalInput = document.getElementById('dist-nova-total');
+            
+            function atualizarDistNovaTotal() {
+                const vista = parseFloat(distNovaVistaInput.value) || 0;
+                const dias30 = parseFloat(distNova30DiasInput.value) || 0;
+                const dias60 = parseFloat(distNova60DiasInput.value) || 0;
+                const dias90 = parseFloat(distNova90DiasInput.value) || 0;
+                
+                const total = vista + dias30 + dias60 + dias90;
+                distNovaTotalInput.value = total.toFixed(0);
+                
+                // Destacar se não totalizar 100%
+                if (total !== 100) {
+                    distNovaTotalInput.style.color = 'red';
+                    distNovaTotalInput.style.fontWeight = 'bold';
+                } else {
+                    distNovaTotalInput.style.color = '';
+                    distNovaTotalInput.style.fontWeight = '';
+                }
+            }
+            
+            distNovaVistaInput.addEventListener('input', atualizarDistNovaTotal);
+            distNova30DiasInput.addEventListener('input', atualizarDistNovaTotal);
+            distNova60DiasInput.addEventListener('input', atualizarDistNovaTotal);
+            distNova90DiasInput.addEventListener('input', atualizarDistNovaTotal);
+            atualizarDistNovaTotal(); // Atualizar inicialmente
+            
+            // Navegação entre subtabs de resultados
+            const subtabButtons = document.querySelectorAll('.subtab-button');
+            const subtabContents = document.querySelectorAll('.subtab-content');
+            
+            subtabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remover classe active de todas as subtabs
+                    subtabButtons.forEach(btn => btn.classList.remove('active'));
+                    subtabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Adicionar classe active ao botão clicado
+                    this.classList.add('active');
+                    
+                    // Mostrar conteúdo correspondente
+                    const subtabId = this.getAttribute('data-subtab');
+                    document.getElementById(subtabId).classList.add('active');
+                });
+            });
+            
+            // Botão para simular estratégias
+            document.getElementById('btn-simular').addEventListener('click', function() {
+                simularEstrategias();
+            });
+            
+            // Botão para comparar eficácia
+            document.getElementById('btn-comparar').addEventListener('click', function() {
+                compararEficacia();
+            });
+            
+            // Função para simular estratégias
+            function simularEstrategias() {
+                // Verificar se ao menos uma estratégia foi selecionada
+                const estrategiasSelecionadas = Array.from(checkboxes).filter(cb => cb.checked);
+                
+                if (estrategiasSelecionadas.length === 0) {
+                    alert('Selecione pelo menos uma estratégia para simular!');
+                    return;
+                }
+                
+                // Aqui seria implementada a lógica de simulação
+                // Por enquanto, apenas exibimos a área de resultados e preenchemos com dados fictícios
+                
+                document.getElementById('resultados-estrategias').style.display = 'block';
+                
+                // Scroll suave até a área de resultados
+                document.getElementById('resultados-estrategias').scrollIntoView({ behavior: 'smooth' });
+                
+                // Preencher tabela de resumo com dados fictícios
+                const tabelaResumoCorpo = document.getElementById('tabela-resumo-corpo');
+                tabelaResumoCorpo.innerHTML = ''; // Limpar conteúdo atual
+                
+                // Exemplo de dados fictícios para a tabela
+                const dadosFicticios = [
+                    {
+                        estrategia: 'Ajuste de preços',
+                        impacto: 'R$ 25.000,00',
+                        custo: 'R$ 5.000,00',
+                        roi: '400%',
+                        viabilidade: 'Alta'
+                    },
+                    {
+                        estrategia: 'Renegociação de prazos',
+                        impacto: 'R$ 18.500,00',
+                        custo: 'R$ 2.000,00',
+                        roi: '825%',
+                        viabilidade: 'Alta'
+                    },
+                    {
+                        estrategia: 'Antecipação de recebíveis',
+                        impacto: 'R$ 32.000,00',
+                        custo: 'R$ 7.500,00',
+                        roi: '327%',
+                        viabilidade: 'Média'
+                    }
+                ];
+                
+                // Filtrar apenas estratégias selecionadas
+                const estrategiasSelecionadasNomes = estrategiasSelecionadas.map(cb => {
+                    switch(cb.value) {
+                        case 'ajuste-precos': return 'Ajuste de preços';
+                        case 'renegociacao-prazos': return 'Renegociação de prazos';
+                        case 'antecipacao-recebiveis': return 'Antecipação de recebíveis';
+                        case 'capital-giro': return 'Captação de capital de giro';
+                        case 'mix-produtos': return 'Otimização do mix de produtos/serviços';
+                        case 'meios-pagamento': return 'Diversificação dos meios de pagamento';
+                        default: return '';
+                    }
+                });
+                
+                const dadosFiltrados = dadosFicticios.filter(d => 
+                    estrategiasSelecionadasNomes.includes(d.estrategia)
+                );
+                
+                // Adicionar linha de total
+                if (dadosFiltrados.length > 0) {
+                    // Adicionar linhas à tabela
+                    dadosFiltrados.forEach(dado => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="padding: 10px; text-align: left; border: 1px solid #ddd;">${dado.estrategia}</td>
+                            <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${dado.impacto}</td>
+                            <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${dado.custo}</td>
+                            <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${dado.roi}</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${dado.viabilidade}</td>
+                        `;
+                        tabelaResumoCorpo.appendChild(tr);
+                    });
+                    
+                    // Adicionar linha de total
+                    const trTotal = document.createElement('tr');
+                    trTotal.style.fontWeight = 'bold';
+                    trTotal.style.backgroundColor = '#f0f0f0';
+                    trTotal.innerHTML = `
+                        <td style="padding: 10px; text-align: left; border: 1px solid #ddd;">Total combinado</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">R$ 75.500,00</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">R$ 14.500,00</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">421%</td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Alta</td>
+                    `;
+                    tabelaResumoCorpo.appendChild(trTotal);
+                } else {
+                    // Se não houver dados filtrados, adicionar mensagem
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td colspan="5" style="padding: 10px; text-align: center; border: 1px solid #ddd;">
+                            Não há dados disponíveis para as estratégias selecionadas.
+                        </td>
+                    `;
+                    tabelaResumoCorpo.appendChild(tr);
+                }
+            }
+            
+            // Função para comparar eficácia das estratégias
+            function compararEficacia() {
+                // Verificar se ao menos duas estratégias foram selecionadas
+                const estrategiasSelecionadas = Array.from(checkboxes).filter(cb => cb.checked);
+                
+                if (estrategiasSelecionadas.length < 2) {
+                    alert('Selecione pelo menos duas estratégias para comparar!');
+                    return;
+                }
+                
+                // Aqui seria implementada a lógica de comparação
+                // Por enquanto, apenas mostramos a aba de comparativo e simulamos uma comparação
+                
+                document.getElementById('resultados-estrategias').style.display = 'block';
+                
+                // Ativar a aba de comparativo
+                subtabButtons.forEach(btn => btn.classList.remove('active'));
+                subtabContents.forEach(content => content.classList.remove('active'));
+                
+                document.querySelector('.subtab-button[data-subtab="comparativo"]').classList.add('active');
+                document.getElementById('comparativo').classList.add('active');
+                
+                // Scroll suave até a área de resultados
+                document.getElementById('resultados-estrategias').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+</html>
