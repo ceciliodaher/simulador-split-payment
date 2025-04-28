@@ -16,17 +16,17 @@
             <img src="imagens/expertzy-it.png" alt="Logo Expertzy" class="logo">
             <h1>Simulador de Impacto do Split Payment no Fluxo de Caixa</h1>
         </div>
-
-    <!-- Sistema de navegação em abas -->
-    <nav>
-		<ul id="tabs">
-			<li><a href="#simulacao-principal" class="active">Simulação Principal</a></li>
-			<li><a href="#configuracoes-setoriais">Configurações Setoriais</a></li>
-			<li><a href="#estrategias-mitigacao">Estratégias de Mitigação</a></li>
-			<li><a href="#memoria-calculo">Memória de Cálculo</a></li>
-			<li><a href="#ajuda-documentacao">Ajuda e Documentação</a></li>
-		</ul>
-	</nav>
+    
+    <!-- Sistema de navegação em abas - VERSÃO APRIMORADA -->
+	<div class="tab-container">
+		<div class="tab-buttons">
+			<button class="tab-button active" data-tab="simulacao-principal">Simulação Principal</button>
+			<button class="tab-button" data-tab="configuracoes-setoriais">Configurações Setoriais</button>
+			<button class="tab-button" data-tab="estrategias-mitigacao">Estratégias de Mitigação</button>
+			<button class="tab-button" data-tab="memoria-calculo">Memória de Cálculo</button>
+			<button class="tab-button" data-tab="ajuda-documentacao">Ajuda e Documentação</button>
+		</div>
+	</div>
 
     <!-- Área principal para conteúdo dinâmico -->
     <main>
@@ -44,7 +44,7 @@
 								<div class="form-group">
 									<label for="faturamento">Faturamento:</label>
 									<div class="input-group">
-										<input type="number" id="faturamento" name="faturamento" min="0" step="1000" value="" class="money-input" required>
+										<input type="text" id="faturamento" name="faturamento" class="money-input" value="">
 										<div class="input-group-append">
 											<span class="input-group-text">R$</span>
 										</div>
@@ -69,17 +69,6 @@
 									<label for="setor">Setor de Atividade:</label>
 									<select id="setor" name="setor" required>
 										<option value="">Selecione...</option>
-										<option value="comercio">Comércio Varejista</option>
-										<option value="industria">Indústria</option>
-										<option value="alimenticio">Indústria Alimentícia</option>
-										<option value="servicos">Serviços</option>
-										<option value="construcao">Construção Civil</option>
-										<option value="agro">Agronegócio</option>
-										<option value="saude">Saúde</option>
-										<option value="educacao">Educação</option>
-										<option value="tecnologia">Tecnologia</option>
-										<option value="transporte">Transporte e Logística</option>
-										<option value="outro">Outro</option>
 									</select>
 								</div>
 								<div class="form-group">
@@ -202,7 +191,7 @@
 								<div class="form-group">
 									<label for="creditos">Créditos Tributários Médios Mensais:</label>
 									<div class="input-group">
-										<input type="number" id="creditos" name="creditos" min="0" step="100" value="0" class="money-input">
+										<input type="text" id="creditos" name="creditos" class="money-input" value="">
 										<div class="input-group-append">
 											<span class="input-group-text">R$</span>
 										</div>
@@ -1875,13 +1864,11 @@
 		</div>
 	</div>
 
-	 <!-- No index.html, manter apenas as referências aos scripts -->
-	<script src="js/formatacao.js"></script>       <!-- Primeiro o arquivo de formatação -->
-	<script src="js/integracao-formatacao.js"></script>  <!-- Depois o arquivo de integração -->
+	 <!-- Scripts do Simulador -->
+	<script src="js/formatacao.js"></script>
 	<script src="js/tab-navigation-system.js"></script>
 	<script src="js/app.js"></script>
-	<!--script src="js/simulador.js"></script-->
-	<script src="js/formulario.js"></script> <!-- Novo arquivo para manipulação de formulários -->
+	<script src="js/formulario.js"></script>
 	<script src="js/configuracoes-setoriais.js"></script>
 </body>
 </html>

@@ -36,6 +36,77 @@
     --border-radius-lg: 12px;
     --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     --box-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+	
+	/* Estilos específicos para campos com formatação monetária */
+	.money-input-container {
+		position: relative;
+	}
+	
+	.money-input {
+		padding-left: 30px !important; /* Espaço para o símbolo da moeda */
+		text-align: right !important;
+		font-family: 'Consolas', monospace;
+	}
+	
+	.money-prefix {
+		position: absolute;
+		left: 10px;
+		top: 50%;
+		transform: translateY(-50%);
+		color: #6c757d;
+		pointer-events: none; /* Permite clicar através do prefixo */
+	}
+	
+	/* Sistema de Navegação por Abas - Estilos Aprimorados */
+	.tab-container {
+		width: 100%;
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.tab-buttons {
+		display: flex;
+		border-bottom: 1px solid var(--light-border);
+		margin-bottom: var(--spacing-md);
+	}
+
+	.tab-button {
+		padding: var(--spacing-md) var(--spacing-lg);
+		background: none;
+		border: none;
+		border-bottom: 3px solid transparent;
+		cursor: pointer;
+		font-size: 1rem;
+		font-weight: 500;
+		color: var(--gray-text);
+		transition: all 0.3s ease;
+	}
+
+	.tab-button:hover {
+		color: var(--primary-color);
+		background-color: rgba(52, 152, 219, 0.05);
+	}
+
+	.tab-button.active {
+		color: var(--primary-color);
+		border-bottom: 3px solid var(--primary-color);
+		background-color: white;
+	}
+
+	.tab-content {
+		display: none;
+		opacity: 0;
+		animation: fadeIn 0.5s ease;
+	}
+
+	.tab-content.active {
+		display: block;
+		opacity: 1;
+	}
+
+	@keyframes fadeIn {
+		from { opacity: 0; }
+		to { opacity: 1; }
+	}
 }
 
 /* Reset e estilos base */
