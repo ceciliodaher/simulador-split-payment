@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Impacto do Split Payment no Fluxo de Caixa</title>
+    <link rel="stylesheet" href="css/split-payment-styles.css">
+    <link rel="stylesheet" href="css/tab-navigation-css.css">
+    <style>
+        /* Estilos específicos para a aba Memória de Cálculo */
+        .memory-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-md);
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--box-shadow);
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .memory-container {
+            height: calc(100vh - 350px);
+            min-height: 400px;
+            background-color: #f5f5f5;
+            border: 1px solid var(--light-border);
+            border-radius: var(--border-radius-md);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-y: auto;
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            white-space: pre-wrap;
+            position: relative;
+        }
+
+        .memory-content {
+            width: 100%;
+        }
+
+        .calculation-section {
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .calculation-section-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .calculation-line {
+            padding: 2px 0;
+        }
+
+        .calculation-line.formula {
+            color: var(--dark-accent);
+            font-weight: bold;
+        }
+
+        .calculation-line.result {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .calculation-line.comment {
+            color: var(--gray-text);
+            font-style: italic;
+        }
+
+        .calculation-line.input {
+            color: var(--primary-color);
+        }
+        
+        .calculation-line.variable {
+            color: var(--highlight-color);
+        }
+
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: var(--spacing-md);
+            padding-right: var(--spacing-sm);
+            background-color: #f0f0f0;
+            border-right: 1px solid var(--light-border);
+            color: var(--gray-text);
+            text-align: right;
+            user-select: none;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .memory-content-with-numbers {
+            margin-left: 50px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-xs);
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-right: var(--spacing-sm);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: var(--spacing-xs);
+            width: auto;
+        }
+
+        .memory-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+        }
+
+        .line-count {
+            color: var(--gray-text);
+            font-size: 14px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: var(--spacing-xs);
+            align-items: center;
+        }
+
+        .search-bar input {
+            width: 200px;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border: 1px solid var(--light-border);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .memory-status {
+            background-color: var(--primary-light);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-md);
+            color: var(--primary-color);
+            font-size: 14px;
+            display: none;
+        }
+
+        .memory-status.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .memory-controls {
+                flex-direction: column;
+            }
+            
+            .control-group {
+                width: 100%;
+            }
+            
+            .memory-toolbar {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+                align-items: stretch;
+            }
+            
+            .toolbar-group {
+                justify-content: center;
+            }
+            
+            .memory-container {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="/api/placeholder/60/60" alt="Logo Expertzy" class="logo">
+            <h1>Simulador de Impacto do Split Payment no Fluxo de Caixa</h1>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button">Simulação Principal</button>
+                <button class="tab-button">Configurações Setoriais</button>
+                <button class="tab-button">Estratégias de Mitigação</button>
+                <button class="tab-button active">Memória de Cálculo</button>
+                <button class="tab-button">Ajuda e Documentação</button>
+            </div>
+
+            <div class="tab-content active">
+                <h2 class="section-title">Memória de Cálculo</h2>
+                <p class="section-subtitle">Visualize e analise todos os cálculos realizados pelo simulador para cada cenário.</p>
+                
+                <div class="memory-status" id="memory-status">
+                    Carregando memória de cálculo...
+                </div>
+                
+                <div class="memory-controls">
+                    <div class="control-group">
+                        <label for="cenario-select">Cenário:</label>
+                        <select id="cenario-select" class="form-control">
+                            <option value="cenario-padrao">Cenário Padrão (Atual)</option>
+                            <option value="cenario-otimista">Cenário Otimista</option>
+                            <option value="cenario-pessimista">Cenário Pessimista</option>
+                            <option value="cenario-personalizado">Cenário Personalizado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="periodo-select">Período:</label>
+                        <select id="periodo-select" class="form-control">
+                            <option value="todos">Todos os períodos</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                            <option value="2029">2029</option>
+                            <option value="2030">2030</option>
+                            <option value="2031">2031</option>
+                            <option value="2032">2032</option>
+                            <option value="2033">2033</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Filtros:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="filtro-fluxo-atual" checked>
+                                <label for="filtro-fluxo-atual">Fluxo de Caixa Atual</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="filtro-fluxo-split" checked>
+                                <label for="filtro-fluxo-split">Fluxo de Caixa com Split</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="filtro-impacto" checked>
+                                <label for="filtro-impacto">Impacto no Capital de Giro</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="filtro-estrategias" checked>
+                                <label for="filtro-estrategias">Estratégias de Mitigação</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="memory-toolbar">
+                    <div class="toolbar-group">
+                        <button type="button" class="btn btn-primary" id="btn-exportar-txt">
+                            <i class="icon-download"></i> Exportar TXT
+                        </button>
+                        <button type="button" class="btn btn-primary" id="btn-exportar-pdf">
+                            <i class="icon-pdf"></i> Exportar PDF
+                        </button>
+                        <button type="button" class="btn btn-outline" id="btn-copiar">
+                            <i class="icon-copy"></i> Copiar
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <span class="line-count" id="line-count">Linhas: 0</span>
+                        <div class="search-bar">
+                            <input type="text" id="search-memory" placeholder="Pesquisar...">
+                            <button type="button" class="btn btn-outline btn-sm" id="btn-search">Buscar</button>
+                        </div>
+                        <label>
+                            <input type="checkbox" id="mostrar-linhas"> Mostrar números de linha
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="memory-container" id="memory-container">
+                    <div class="line-numbers" id="line-numbers" style="display:none;"></div>
+                    <div class="memory-content" id="memory-content">
+                        <!-- O conteúdo da memória de cálculo será inserido aqui dinamicamente via JavaScript -->
+                        <div class="calculation-section">
+                            <div class="calculation-section-title">== PARÂMETROS DE ENTRADA ==</div>
+                            <div class="calculation-line input">Faturamento: R$ 1.000.000,00</div>
+                            <div class="calculation-line input">Período: Mensal</div>
+                            <div class="calculation-line input">Setor: Comércio Varejista</div>
+                            <div class="calculation-line input">Regime Tributário: Lucro Presumido</div>
+                            <div class="calculation-line input">Margem Operacional: 25%</div>
+                            <div class="calculation-line input">Prazo Médio de Recebimento (PMR): 30 dias</div>
+                            <div class="calculation-line input">Prazo Médio de Pagamento (PMP): 40 dias</div>
+                            <div class="calculation-line input">Prazo Médio de Estoque (PME): 45 dias</div>
+                            <div class="calculation-line input">Vendas à Vista: 30%</div>
+                            <div class="calculation-line input">Vendas a Prazo: 70%</div>
+                            <div class="calculation-line input">Alíquota Efetiva de Tributos: 26,5%</div>
+                        </div>
+                        
+                        <div class="calculation-section">
+                            <div class="calculation-section-title">== CÁLCULO DO CICLO FINANCEIRO ATUAL ==</div>
+                            <div class="calculation-line comment"># Ciclo Financeiro = PMR + PME - PMP</div>
+                            <div class="calculation-line formula">Ciclo Financeiro = 30 + 45 - 40</div>
+                            <div class="calculation-line result">Ciclo Financeiro = 35 dias</div>
+                        </div>
+                        
+                        <div class="calculation-section">
+                            <div class="calculation-section-title">== CÁLCULO DO FLUXO DE CAIXA ATUAL ==</div>
+                            <div class="calculation-line comment"># Cálculo das vendas mensais por modalidade</div>
+                            <div class="calculation-line formula">Vendas à Vista = Faturamento * % Vendas à Vista</div>
+                            <div class="calculation-line formula">Vendas à Vista = R$ 1.000.000,00 * 30%</div>
+                            <div class="calculation-line result">Vendas à Vista = R$ 300.000,00</div>
+                            <div class="calculation-line formula">Vendas a Prazo = Faturamento * % Vendas a Prazo</div>
+                            <div class="calculation-line formula">Vendas a Prazo = R$ 1.000.000,00 * 70%</div>
+                            <div class="calculation-line result">Vendas a Prazo = R$ 700.000,00</div>
+                            
+                            <div class="calculation-line comment"># Cálculo dos impostos</div>
+                            <div class="calculation-line formula">Impostos = Faturamento * Alíquota Efetiva</div>
+                            <div class="calculation-line formula">Impostos = R$ 1.000.000,00 * 26,5%</div>
+                            <div class="calculation-line result">Impostos = R$ 265.000,00</div>
+                            
+                            <div class="calculation-line comment"># Cálculo do prazo de pagamento do imposto atual</div>
+                            <div class="calculation-line variable">Prazo de Pagamento do Imposto = 25 dias (após o mês)</div>
+                            <div class="calculation-line formula">Prazo Efetivo = 30 + 25 = 55 dias</div>
+                        </div>
+                        
+                        <div class="calculation-section">
+                            <div class="calculation-section-title">== CÁLCULO DO FLUXO DE CAIXA COM SPLIT PAYMENT ==</div>
+                            <div class="calculation-line comment"># Parâmetros do Split Payment para 2026</div>
+                            <div class="calculation-line variable">Percentual de Implementação (2026) = 10%</div>
+                            <div class="calculation-line variable">Alíquota CBS = 8,8%</div>
+                            <div class="calculation-line variable">Alíquota IBS = 17,7%</div>
+                            
+                            <div class="calculation-line comment"># Cálculo dos impostos em Split Payment</div>
+                            <div class="calculation-line formula">Impostos Split = Impostos * Percentual de Implementação</div>
+                            <div class="calculation-line formula">Impostos Split = R$ 265.000,00 * 10%</div>
+                            <div class="calculation-line result">Impostos Split = R$ 26.500,00</div>
+                            
+                            <div class="calculation-line formula">Impostos Convencionais = Impostos - Impostos Split</div>
+                            <div class="calculation-line formula">Impostos Convencionais = R$ 265.000,00 - R$ 26.500,00</div>
+                            <div class="calculation-line result">Impostos Convencionais = R$ 238.500,00</div>
+                            
+                            <div class="calculation-line comment"># Cálculo do impacto no fluxo de vendas a prazo</div>
+                            <div class="calculation-line formula">Impostos Split nas Vendas a Prazo = Vendas a Prazo * Alíquota Efetiva * % Implementação</div>
+                            <div class="calculation-line formula">Impostos Split nas Vendas a Prazo = R$ 700.000,00 * 26,5% * 10%</div>
+                            <div class="calculation-line result">Impostos Split nas Vendas a Prazo = R$ 18.550,00</div>
+                        </div>
+                        
+                        <div class="calculation-section">
+                            <div class="calculation-section-title">== IMPACTO NO CAPITAL DE GIRO ==</div>
+                            <div class="calculation-line comment"># Cálculo do Capital de Giro Comprometido no modelo atual</div>
+                            <div class="calculation-line formula">Capital de Giro Atual = (Vendas a Prazo / 30) * PMR - (Impostos / 30) * (Prazo Efetivo)</div>
+                            <div class="calculation-line formula">Capital de Giro Atual = (R$ 700.000,00 / 30) * 30 - (R$ 265.000,00 / 30) * 55</div>
+                            <div class="calculation-line formula">Capital de Giro Atual = R$ 700.000,00 - R$ 485.833,33</div>
+                            <div class="calculation-line result">Capital de Giro Atual = R$ 214.166,67</div>
+                            
+                            <div class="calculation-line comment"># Cálculo do Capital de Giro Comprometido com Split Payment</div>
+                            <div class="calculation-line formula">Capital de Giro Split = (Vendas a Prazo / 30) * PMR - (Impostos Convencionais / 30) * (Prazo Efetivo) - Impostos Split nas Vendas a Prazo</div>
+                            <div class="calculation-line formula">Capital de Giro Split = (R$ 700.000,00 / 30) * 30 - (R$ 238.500,00 / 30) * 55 - R$ 18.550,00</div>
+                            <div class="calculation-line formula">Capital de Giro Split = R$ 700.000,00 - R$ 437.250,00 - R$ 18.550,00</div>
+                            <div class="calculation-line result">Capital de Giro Split = R$ 244.200,00</div>
+                            
+                            <div class="calculation-line comment"># Cálculo do Impacto no Capital de Giro</div>
+                            <div class="calculation-line formula">Impacto = Capital de Giro Atual - Capital de Giro Split</div>
+                            <div class="calculation-line formula">Impacto = R$ 214.166,67 - R$ 244.200,00</div>
+                            <div class="calculation-line result">Impacto = -R$ 30.033,33 (Redução no Capital de Giro)</div>
+                        </div>
+                        
+                        <div class="calculation-section">
+                            <div class="calculation-section-title">== ESTRATÉGIAS DE MITIGAÇÃO ==</div>
+                            <div class="calculation-line comment"># Análise de Estratégia: Antecipação de Recebíveis</div>
+                            <div class="calculation-line variable">Taxa de Desconto = 1,8% a.m.</div>
+                            <div class="calculation-line variable">Percentual a Antecipar = 50% das vendas a prazo</div>
+                            <div class="calculation-line formula">Valor a Antecipar = Vendas a Prazo * Percentual a Antecipar</div>
+                            <div class="calculation-line formula">Valor a Antecipar = R$ 700.000,00 * 50%</div>
+                            <div class="calculation-line result">Valor a Antecipar = R$ 350.000,00</div>
+                            
+                            <div class="calculation-line formula">Custo da Antecipação = Valor a Antecipar * Taxa de Desconto * (PMR / 30)</div>
+                            <div class="calculation-line formula">Custo da Antecipação = R$ 350.000,00 * 1,8% * (30 / 30)</div>
+                            <div class="calculation-line result">Custo da Antecipação = R$ 6.300,00</div>
+                            
+                            <div class="calculation-line formula">Benefício Líquido = Valor a Antecipar - Custo da Antecipação - Impacto</div>
+                            <div class="calculation-line formula">Benefício Líquido = R$ 350.000,00 - R$ 6.300,00 - R$ 30.033,33</div>
+                            <div class="calculation-line result">Benefício Líquido = R$ 313.666,67</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 Expertzy Inteligência Tributária
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variáveis e elementos
+            const memoryContainer = document.getElementById('memory-container');
+            const memoryContent = document.getElementById('memory-content');
+            const lineNumbers = document.getElementById('line-numbers');
+            const lineCountDisplay = document.getElementById('line-count');
+            const showLinesCheckbox = document.getElementById('mostrar-linhas');
+            const searchInput = document.getElementById('search-memory');
+            const searchButton = document.getElementById('btn-search');
+            const copyButton = document.getElementById('btn-copiar');
+            const exportTxtButton = document.getElementById('btn-exportar-txt');
+            const exportPdfButton = document.getElementById('btn-exportar-pdf');
+            const cenarioSelect = document.getElementById('cenario-select');
+            const periodoSelect = document.getElementById('periodo-select');
+            const filterCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="filtro-"]');
+            
+            // Função para atualizar a contagem de linhas
+            function updateLineCount() {
+                const lines = memoryContent.innerText.split('\n');
+                lineCountDisplay.textContent = `Linhas: ${lines.length}`;
+                
+                // Atualizar os números de linha
+                lineNumbers.innerHTML = '';
+                for (let i = 1; i <= lines.length; i++) {
+                    const lineNumber = document.createElement('div');
+                    lineNumber.textContent = i;
+                    lineNumbers.appendChild(lineNumber);
+                }
+            }
+            
+            // Inicializar contagem de linhas
+            updateLineCount();
+            
+            // Mostrar/ocultar números de linha
+            showLinesCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    lineNumbers.style.display = 'block';
+                    memoryContent.classList.add('memory-content-with-numbers');
+                } else {
+                    lineNumbers.style.display = 'none';
+                    memoryContent.classList.remove('memory-content-with-numbers');
+                }
+            });
+            
+            // Função para destacar resultados da pesquisa
+            function highlightSearch(text) {
+                // Remover destaques anteriores
+                const content = memoryContent.innerHTML;
+                const cleanContent = content.replace(/<mark class="search-highlight">(.+?)<\/mark>/g, '$1');
+                memoryContent.innerHTML = cleanContent;
+                
+                if (text && text.length > 0) {
+                    // Criar uma expressão regular para pesquisa case-insensitive
+                    const regex = new RegExp(text, 'gi');
+                    
+                    // Substituir ocorrências no HTML por texto destacado
+                    const highlightedContent = memoryContent.innerHTML.replace(regex, match => 
+                        `<mark class="search-highlight">${match}</mark>`);
+                    
+                    memoryContent.innerHTML = highlightedContent;
+                    
+                    // Rolar até a primeira ocorrência
+                    const firstHighlight = memoryContent.querySelector('.search-highlight');
+                    if (firstHighlight) {
+                        firstHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+            
+            // Evento de pesquisa
+            searchButton.addEventListener('click', function() {
+                highlightSearch(searchInput.value);
+            });
+            
+            // Pesquisar ao pressionar Enter no campo de pesquisa
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    highlightSearch(this.value);
+                }
+            });
+            
+            // Função para copiar o conteúdo para a área de transferência
+            copyButton.addEventListener('click', function() {
+                // Criar um elemento temporário de texto
+                const textArea = document.createElement('textarea');
+                textArea.value = memoryContent.innerText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                
+                try {
+                    // Tentar copiar o texto selecionado
+                    const successful = document.execCommand('copy');
+                    const message = successful ? 
+                        'Memória de cálculo copiada para a área de transferência!' : 
+                        'Não foi possível copiar o conteúdo.';
+                    
+                    // Exibir mensagem de status
+                    const statusElement = document.getElementById('memory-status');
+                    statusElement.textContent = message;
+                    statusElement.classList.add('active');
+                    
+                    // Esconder a mensagem após 3 segundos
+                    setTimeout(() => {
+                        statusElement.classList.remove('active');
+                    }, 3000);
+                } catch (err) {
+                    console.error('Não foi possível copiar o texto: ', err);
+                }
+                
+                // Remover o elemento temporário
+                document.body.removeChild(textArea);
+            });
+            
+            // Função para exportar como TXT
+            exportTxtButton.addEventListener('click', function() {
+                const text = memoryContent.innerText;
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = `Memoria_Calculo_${cenarioSelect.value}_${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(url);
+            });
+            
+            // Função para exportar como PDF
+            exportPdfButton.addEventListener('click', function() {
+                // Aqui você implementaria a exportação para PDF
+                // Utilizando uma biblioteca como jsPDF
+                
+                // Exemplo de mensagem de status para demonstração
+                const statusElement = document.getElementById('memory-status');
+                statusElement.textContent = 'Exportando para PDF... Funcionalidade em implementação.';
+                statusElement.classList.add('active');
+                
+                // Esconder a mensagem após 3 segundos
+                setTimeout(() => {
+                    statusElement.classList.remove('active');
+                }, 3000);
+            });
+            
+            // Filtrar conteúdo com base nas seleções
+            function applyFilters() {
+                // Obter valores dos filtros
+                const cenario = cenarioSelect.value;
+                const periodo = periodoSelect.value;
+                
+                // Obter estados dos checkboxes
+                const showFluxoAtual = document.getElementById('filtro-fluxo-atual').checked;
+                const showFluxoSplit = document.getElementById('filtro-fluxo-split').checked;
+                const showImpacto = document.getElementById('filtro-impacto').checked;
+                const showEstrategias = document.getElementById('filtro-estrategias').checked;
+                
+                // Exibir mensagem de status
+                const statusElement = document.getElementById('memory-status');
+                statusElement.textContent = 'Aplicando filtros...';
+                statusElement.classList.add('active');
+                
+                // Simulando um tempo de processamento
+                setTimeout(() => {
+                    // Ocultar seções com base nos filtros
+                    const sections = memoryContent.querySelectorAll('.calculation-section');
+                    sections.forEach(section => {
+                        const title = section.querySelector('.calculation-section-title').textContent;
+                        
+                        // Exibir/ocultar com base nos filtros
+                        if (title.includes('FLUXO DE CAIXA ATUAL') && !showFluxoAtual) {
+                            section.style.display = 'none';
+                        } 
+                        else if (title.includes('FLUXO DE CAIXA COM SPLIT') && !showFluxoSplit) {
+                            section.style.display = 'none';
+                        }
+                        else if (title.includes('IMPACTO NO CAPITAL') && !showImpacto) {
+                            section.style.display = 'none';
+                        }
+                        else if (title.includes('ESTRATÉGIAS') && !showEstrategias) {
+                            section.style.display = 'none';
+                        }
+                        else {
+                            section.style.display = 'block';
+                        }
+                    });
+                    
+                    // Atualizar números de linha após filtros
+                    updateLineCount();
+                    
+                    // Esconder a mensagem de status
+                    statusElement.classList.remove('active');
+                }, 500);
+            }
+            
+            // Aplicar filtros quando seletores ou checkboxes mudarem
+            cenarioSelect.addEventListener('change', applyFilters);
+            periodoSelect.addEventListener('change', applyFilters);
+            filterCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', applyFilters);
+            });
+            
+            // Inicializar (aplicar filtros iniciais)
+            applyFilters();
+        });
+    </script>
+</body>
+</html>
