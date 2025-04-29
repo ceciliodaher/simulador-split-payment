@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Impacto do Split Payment no Fluxo de Caixa</title>
+    <!-- Inclusão dos arquivos CSS -->
+    <link rel="stylesheet" href="css/split-payment-styles.css">
+    <link rel="stylesheet" href="css/tab-navigation-css.css">
+    <link rel="stylesheet" href="css/form-enhancements.css">
+     <link rel="stylesheet" href="css/ajuda-documentacao-css.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="imagens/expertzy-it.png" alt="Logo Expertzy" class="logo">
+            <h1>Simulador de Impacto do Split Payment no Fluxo de Caixa</h1>
+        </div>
+    
+    <!-- Sistema de navegação em abas - VERSÃO APRIMORADA -->
+	<div class="tab-container">
+		<div class="tab-buttons">
+			<button class="tab-button active" data-tab="simulacao-principal">Simulação Principal</button>
+			<button class="tab-button" data-tab="configuracoes-setoriais">Configurações Setoriais</button>
+			<button class="tab-button" data-tab="estrategias-mitigacao">Estratégias de Mitigação</button>
+			<button class="tab-button" data-tab="memoria-calculo">Memória de Cálculo</button>
+			<button class="tab-button" data-tab="ajuda-documentacao">Ajuda e Documentação</button>
+		</div>
+	</div>
+
+    <!-- Área principal para conteúdo dinâmico -->
+    <main>
+        <!-- Container para o conteúdo que muda conforme a aba selecionada -->
+        <div id="content-container">
+           <!-- Conteúdo da aba Simulação Principal -->
+			<div id="simulacao-principal" class="tab-content active">
+				<h2>Simulação Principal</h2>
+				<div id="simulacao-form">
+					<!-- Dados Gerais da Empresa -->
+					<div class="group-box">
+						<h3>Dados Gerais da Empresa</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="faturamento">Faturamento:</label>
+									<div class="input-group">
+										<input type="text" id="faturamento" name="faturamento" class="money-input" value="">
+										<div class="input-group-append">
+											<span class="input-group-text">R$</span>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label>Período:</label>
+									<div class="radio-group">
+										<div class="radio-item">
+											<input type="radio" id="periodo-mensal" name="periodo" value="mensal" checked>
+											<label for="periodo-mensal">Mensal</label>
+										</div>
+										<div class="radio-item">
+											<input type="radio" id="periodo-anual" name="periodo" value="anual">
+											<label for="periodo-anual">Anual</label>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="setor">Setor de Atividade:</label>
+									<select id="setor" name="setor" required>
+										<option value="">Selecione...</option>
+									</select>
+								</div>
+								<div class="form-group">
+									<label for="regime">Regime Tributário:</label>
+									<select id="regime" name="regime" required>
+										<option value="">Selecione...</option>
+										<option value="simples">Simples Nacional</option>
+										<option value="presumido">Lucro Presumido</option>
+										<option value="real">Lucro Real</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="margem">Margem Operacional (%):</label>
+									<div class="input-group">
+										<input type="text" id="margem" name="margem" min="0" max="100" step="0.1" value="" class="percent-input" style="background-color: #f8f9fa;">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Ciclo Financeiro Atual -->					
+					<div class="group-box">
+						<h3>Ciclo Financeiro Atual</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="pmr">Prazo Médio de Recebimento (PMR):</label>
+									<div class="input-group">
+										<input type="number" id="pmr" name="pmr" min="0" step="1" value="30">
+										<div class="input-group-append">
+											<span class="input-group-text">dias</span>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="pmp">Prazo Médio de Pagamento (PMP):</label>
+									<div class="input-group">
+										<input type="number" id="pmp" name="pmp" min="0" step="1" value="30">
+										<div class="input-group-append">
+											<span class="input-group-text">dias</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="pme">Prazo Médio de Estoque (PME):</label>
+									<div class="input-group">
+										<input type="number" id="pme" name="pme" min="0" step="1" value="30">
+										<div class="input-group-append">
+											<span class="input-group-text">dias</span>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="ciclo-financeiro">Ciclo Financeiro:</label>
+									<div class="input-group">
+										<input type="number" id="ciclo-financeiro" name="ciclo-financeiro" readonly>
+										<div class="input-group-append">
+											<span class="input-group-text">dias</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="perc-vista">Percentual de Vendas à Vista (%):</label>
+									<div class="input-group">
+										<input type="number" id="perc-vista" name="perc-vista" min="0" max="100" step="0.1" value="" class="percent-input">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="perc-prazo">Percentual de Vendas a Prazo (%):</label>
+									<div class="input-group">
+										<input type="text" id="perc-prazo" name="perc-prazo" readonly class="percent-input" style="background-color: #f8f9fa;">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Parâmetros Tributários -->
+					<div class="group-box">
+						<h3>Parâmetros Tributários</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="aliquota">Alíquota Efetiva de Tributos sobre Faturamento:</label>
+									<div class="input-group">
+										<input type="number" id="aliquota" name="aliquota" min="0" max="100" step="0.1" value="26.5">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="tipo-operacao">Tipo de Operação Predominante:</label>
+									<select id="tipo-operacao" name="tipo-operacao" required>
+										<option value="">Selecione...</option>
+										<option value="b2b">B2B (Empresa para Empresa)</option>
+										<option value="b2c">B2C (Empresa para Consumidor)</option>
+										<option value="mista">Mista</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="creditos">Créditos Tributários Médios Mensais:</label>
+									<div class="input-group">
+										<input type="text" id="creditos" name="creditos" class="money-input" value="">
+										<div class="input-group-append">
+											<span class="input-group-text">R$</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Parâmetros de Simulação -->
+					<div class="group-box">
+						<h3>Parâmetros de Simulação</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="data-inicial">Data Inicial:</label>
+									<input type="date" id="data-inicial" name="data-inicial" value="2026-01-01" min="2026-01-01">
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="data-final">Data Final:</label>
+									<input type="date" id="data-final" name="data-final" value="2033-12-31" min="2026-01-01">
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="cenario">Cenário de Crescimento:</label>
+									<select id="cenario" name="cenario" required>
+										<option value="">Selecione...</option>
+										<option value="conservador">Conservador (1-3% a.a.)</option>
+										<option value="moderado">Moderado (4-6% a.a.)</option>
+										<option value="otimista">Otimista (7-10% a.a.)</option>
+										<option value="personalizado">Personalizado</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<!-- Cenário Personalizado (aparece apenas quando "Personalizado" é selecionado) -->
+						<div id="cenario-personalizado" style="display: none;">
+							<div class="form-row">
+								<div class="form-column">
+									<div class="form-group">
+										<label for="taxa-crescimento">Taxa de Crescimento Anual (%):</label>
+										<div class="input-group">
+											<input type="number" id="taxa-crescimento" name="taxa-crescimento" min="0" max="100" step="0.1" value="5">
+											<div class="input-group-append">
+												<span class="input-group-text">%</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					</div>
+
+					<!-- Botões -->
+					<div class="buttons-container">
+						<button type="button" class="primary" id="btn-simular">Simular</button>
+						<button type="reset" class="secondary" id="btn-limpar">Limpar</button>
+					</div>
+				</div>
+				<div class="results-panel">
+					<h3>Resultados da Simulação</h3>
+					<div id="resultados">
+						<!-- Resultados da simulação serão exibidos aqui -->
+					</div>
+				</div>
+			</div>
+        
+			<!-- Conteúdo da aba Configurações Setoriais -->
+			<div id="configuracoes-setoriais" class="tab-content">
+				<h2>Configurações Setoriais</h2>
+				<div class="panel mb-4">
+					<h3 class="panel-title">Parâmetros Gerais do Split Payment</h3>
+					<p class="text-muted mb-3">Configure os valores base para o cálculo do split payment que serão aplicados a todos os setores, exceto quando houver configurações específicas.</p>
+
+					<div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px;">
+						<div class="form-group">
+							<label for="aliquota-cbs">Alíquota CBS (%):</label>
+							<div class="input-group">
+								<input type="number" id="aliquota-cbs" name="aliquota-cbs" min="0" max="100" step="0.01" value="8.8">
+								<div class="input-group-append">
+									<span class="input-group-text">%</span>
+								</div>
+							</div>
+							<small class="help-text">Contribuição sobre Bens e Serviços - Alíquota Federal</small>
+						</div>
+						<div class="form-group">
+								<label for="aliquota-ibs">Alíquota IBS (%):</label>
+								<div class="input-group">
+									<input type="number" id="aliquota-ibs" name="aliquota-ibs" min="0" max="100" step="0.01" value="17.7">
+									<div class="input-group-append">
+										<span class="input-group-text">%</span>
+									</div>
+								</div>
+								<small class="help-text">Imposto sobre Bens e Serviços - Alíquota Estadual/Municipal</small>
+							</div>
+							
+							<div class="form-group">
+								<label for="data-inicio">Data de Início:</label>
+								<input type="month" id="data-inicio" name="data-inicio" value="2026-01" min="2026-01">
+								<small class="help-text">Início da implementação do split payment</small>
+							</div>
+						</div>
+						
+						<h3 class="section-subtitle mt-4">Cronograma de Implementação</h3>
+						<p class="text-muted mb-3">Defina o percentual de implementação do split payment ao longo dos anos de transição (2026-2033).</p>
+						
+						<div class="table-actions">
+							<button type="button" class="btn btn-outline" id="btn-restaurar-cronograma">Restaurar Cronograma Padrão</button>
+						</div>
+						
+						<div class="table-container">
+							<table class="editable-table cronograma-table" id="cronograma-table">
+								<thead>
+									<tr>
+										<th>Ano</th>
+										<th>Percentual (%)</th>
+										<th>Observações</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>2026</td>
+										<td><input type="number" name="perc-2026" min="0" max="100" step="0.1" value="10.0"></td>
+										<td><input type="text" name="obs-2026" placeholder="Observações..."></td>
+									</tr>
+									<tr>
+										<td>2027</td>
+										<td><input type="number" name="perc-2027" min="0" max="100" step="0.1" value="25.0"></td>
+										<td><input type="text" name="obs-2027" placeholder="Observações..."></td>
+									</tr>
+									<tr>
+										<td>2028</td>
+										<td><input type="number" name="perc-2028" min="0" max="100" step="0.1" value="40.0"></td>
+										<td><input type="text" name="obs-2028" placeholder="Observações..."></td>
+									</tr>
+									<tr>
+										<td>2029</td>
+										<td><input type="number" name="perc-2029" min="0" max="100" step="0.1" value="55.0"></td>
+										<td><input type="text" name="obs-2029" placeholder="Observações..."></td>
+									</tr>
+									<tr>
+										<td>2030</td>
+										<td><input type="number" name="perc-2030" min="0" max="100" step="0.1" value="70.0"></td>
+										<td><input type="text" name="obs-2030" placeholder="Observações..."></td>
+									</tr>
+									<tr>
+										<td>2031</td>
+										<td><input type="number" name="perc-2031" min="0" max="100" step="0.1" value="85.0"></td>
+										<td><input type="text" name="obs-2031" placeholder="Observações..."></td>
+									</tr>
+									<tr>
+										<td>2032</td>
+										<td><input type="number" name="perc-2032" min="0" max="100" step="0.1" value="95.0"></td>
+										<td><input type="text" name="obs-2032" placeholder="Observações..."></td>
+									</tr>
+									<tr>
+										<td>2033</td>
+										<td><input type="number" name="perc-2033" min="0" max="100" step="0.1" value="100.0"></td>
+										<td><input type="text" name="obs-2033" placeholder="Observações..."></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					
+						<div class="panel mb-4">
+							<h3 class="panel-title">Configurações Específicas por Setor</h3>
+							<p class="text-muted mb-3">Configure parâmetros específicos para setores que possuem tratamento diferenciado no regime do split payment.</p>
+							
+							<div class="table-actions">
+								<button type="button" class="btn btn-primary" id="btn-adicionar-setor">Adicionar Setor</button>
+							</div>
+							
+							<div class="table-container">
+								<table class="editable-table sector-table" id="sector-table">
+									<thead>
+										<tr>
+											<th>Setor</th>
+											<th>Alíquota Específica (%)</th>
+											<th>Redução Especial (%)</th>
+											<th>Cronograma Próprio</th>
+											<th class="actions-column">Ações</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr id="setor-1">
+											<td><input type="text" name="setor-nome-1" value="Comércio Varejista"></td>
+											<td><input type="number" name="setor-aliquota-1" min="0" max="100" step="0.01" value="26.5"></td>
+											<td><input type="number" name="setor-reducao-1" min="0" max="100" step="0.01" value="0"></td>
+											<td>
+												<select name="setor-cronograma-1">
+													<option value="padrao">Cronograma Padrão</option>
+													<option value="proprio">Cronograma Específico</option>
+												</select>
+											</td>
+											<td>
+												<button type="button" class="btn btn-outline btn-sm" onclick="configurarCronogramaSetor(1)">Configurar</button>
+												<button type="button" class="btn btn-accent btn-sm" onclick="removerSetor(1)">Remover</button>
+											</td>
+										</tr>
+										<tr id="setor-2">
+											<td><input type="text" name="setor-nome-2" value="Indústria"></td>
+											<td><input type="number" name="setor-aliquota-2" min="0" max="100" step="0.01" value="26.5"></td>
+											<td><input type="number" name="setor-reducao-2" min="0" max="100" step="0.01" value="0"></td>
+											<td>
+												<select name="setor-cronograma-2">
+													<option value="padrao">Cronograma Padrão</option>
+													<option value="proprio">Cronograma Específico</option>
+												</select>
+											</td>
+											<td>
+												<button type="button" class="btn btn-outline btn-sm" onclick="configurarCronogramaSetor(2)">Configurar</button>
+												<button type="button" class="btn btn-accent btn-sm" onclick="removerSetor(2)">Remover</button>
+											</td>
+										</tr>
+										<tr id="setor-3">
+											<td><input type="text" name="setor-nome-3" value="Serviços"></td>
+											<td><input type="number" name="setor-aliquota-3" min="0" max="100" step="0.01" value="26.5"></td>
+											<td><input type="number" name="setor-reducao-3" min="0" max="100" step="0.01" value="0"></td>
+											<td>
+												<select name="setor-cronograma-3">
+													<option value="padrao">Cronograma Padrão</option>
+													<option value="proprio">Cronograma Específico</option>
+												</select>
+											</td>
+											<td>
+												<button type="button" class="btn btn-outline btn-sm" onclick="configurarCronogramaSetor(3)">Configurar</button>
+												<button type="button" class="btn btn-accent btn-sm" onclick="removerSetor(3)">Remover</button>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					
+						<div class="panel mb-4">
+							<h3 class="panel-title">Parâmetros Financeiros</h3>
+							<p class="text-muted mb-3">Configure os parâmetros financeiros para cálculo do impacto do split payment no capital de giro e fluxo de caixa.</p>
+							
+							<div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px;">
+								<div class="form-group">
+									<label for="taxa-antecipacao">Taxa Média de Antecipação de Recebíveis:</label>
+									<div class="input-group">
+										<input type="number" id="taxa-antecipacao" name="taxa-antecipacao" min="0" max="100" step="0.01" value="1.8">
+										<div class="input-group-append">
+											<span class="input-group-text">% a.m.</span>
+										</div>
+									</div>
+									<small class="help-text">Taxa média para antecipação de recebíveis ao mês</small>
+								</div>
+								
+								<div class="form-group">
+									<label for="taxa-capital-giro">Taxa Média de Capital de Giro:</label>
+									<div class="input-group">
+										<input type="number" id="taxa-capital-giro" name="taxa-capital-giro" min="0" max="100" step="0.01" value="2.1">
+										<div class="input-group-append">
+											<span class="input-group-text">% a.m.</span>
+										</div>
+									</div>
+									<small class="help-text">Taxa média para linhas de capital de giro ao mês</small>
+								</div>
+								
+								<div class="form-group">
+									<label for="spread-bancario">Spread Bancário Médio:</label>
+									<div class="input-group">
+										<input type="number" id="spread-bancario" name="spread-bancario" min="0" max="100" step="0.01" value="3.5">
+										<div class="input-group-append">
+											<span class="input-group-text">p.p.</span>
+										</div>
+									</div>
+									<small class="help-text">Spread bancário médio em pontos percentuais</small>
+								</div>
+							</div>
+							
+							<div class="form-group mt-3">
+								<label for="observacoes-financeiras">Observações Adicionais:</label>
+								<textarea id="observacoes-financeiras" name="observacoes-financeiras" rows="3" placeholder="Insira aqui observações adicionais sobre os parâmetros financeiros..."></textarea>
+							</div>
+						</div>
+						
+						<div class="form-actions">
+							<button type="button" class="btn btn-primary" id="btn-salvar-configuracoes">Salvar Configurações</button>
+							<button type="button" class="btn btn-secondary" id="btn-restaurar-padroes">Restaurar Padrões</button>
+						</div>		
+						<!-- Modal para Configuração de Cronograma Setorial -->
+						<div class="modal-backdrop" id="modal-cronograma-setor">
+							<div class="modal">
+								<div class="modal-header">
+									<h3 class="modal-title">Cronograma Específico para Setor</h3>
+									<button type="button" class="modal-close" id="btn-fechar-modal">&times;</button>
+								</div>
+								<div class="modal-body">
+									<div class="mb-3">
+										<label for="modal-setor-nome" class="fw-bold">Setor:</label>
+										<span id="modal-setor-nome"></span>
+										<input type="hidden" id="modal-setor-id">
+									</div>
+									
+									<div class="table-container">
+										<table class="editable-table cronograma-table" id="cronograma-setor-table">
+											<thead>
+												<tr>
+													<th>Ano</th>
+													<th>Percentual (%)</th>
+													<th>Observações</th>
+												</tr>
+											</thead>
+											<tbody>
+												<!-- Será preenchido dinamicamente por JavaScript -->
+											</tbody>
+										</table>
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-primary" id="btn-salvar-cronograma-setor">Salvar</button>
+									<button type="button" class="btn btn-secondary" id="btn-cancelar-modal">Cancelar</button>
+								</div>
+							</div>
+						</div>			
+							<!-- Modal para Configuração de Cronograma Setorial -->
+							<div class="modal-backdrop" id="modal-cronograma-setor">
+								<!-- Conteúdo do modal... -->
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="estrategias-mitigacao" class="tab-content">
+				<form id="estrategias-form">
+					<!-- Seleção de Estratégias -->
+					<div class="group-box">
+						<h2>Seleção de Estratégias de Mitigação</h2>
+						<p style="margin-bottom: 15px; color: var(--gray-text);">Selecione as estratégias que deseja simular para mitigar o impacto do Split Payment no fluxo de caixa da empresa.</p>
+						
+						<div class="checkbox-group">
+							<div class="checkbox-item">
+								<input type="checkbox" id="ajuste-precos" name="estrategias" value="ajuste-precos">
+								<label for="ajuste-precos">Ajuste de preços</label>
+							</div>
+							<div class="checkbox-item">
+								<input type="checkbox" id="renegociacao-prazos" name="estrategias" value="renegociacao-prazos">
+								<label for="renegociacao-prazos">Renegociação de prazos</label>
+							</div>
+							<div class="checkbox-item">
+								<input type="checkbox" id="antecipacao-recebiveis" name="estrategias" value="antecipacao-recebiveis">
+								<label for="antecipacao-recebiveis">Antecipação de recebíveis</label>
+							</div>
+							<div class="checkbox-item">
+								<input type="checkbox" id="capital-giro" name="estrategias" value="capital-giro">
+								<label for="capital-giro">Captação de capital de giro</label>
+							</div>
+							<div class="checkbox-item">
+								<input type="checkbox" id="mix-produtos" name="estrategias" value="mix-produtos">
+								<label for="mix-produtos">Otimização do mix de produtos/serviços</label>
+							</div>
+							<div class="checkbox-item">
+								<input type="checkbox" id="meios-pagamento" name="estrategias" value="meios-pagamento">
+								<label for="meios-pagamento">Diversificação dos meios de pagamento</label>
+							</div>
+						</div>
+					</div>
+					<!-- Parâmetros de Ajuste de Preços -->
+					<div id="params-ajuste-precos" class="strategy-params">
+						<h3>Parâmetros de Ajuste de Preços</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="perc-aumento">Percentual de aumento (%):</label>
+									<div class="input-group">
+										<input type="number" id="perc-aumento" name="perc-aumento" min="0" max="100" step="0.1" value="5.0">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Aumento médio a ser aplicado nos preços dos produtos/serviços</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="elasticidade">Elasticidade-preço estimada:</label>
+									<input type="number" id="elasticidade" name="elasticidade" min="-10" max="0" step="0.1" value="-1.2">
+									<span class="help-text">Valor negativo que indica a sensibilidade da demanda às alterações de preço</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="impacto-vendas">Impacto estimado nas vendas (%):</label>
+									<div class="input-group">
+										<input type="number" id="impacto-vendas" name="impacto-vendas" readonly>
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Calculado automaticamente com base na elasticidade</span>
+								</div>
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="estrategia-preco">Estratégia de repasse:</label>
+									<select id="estrategia-preco" name="estrategia-preco">
+										<option value="gradual">Repasse gradual</option>
+										<option value="imediato">Repasse imediato</option>
+										<option value="seletivo">Repasse seletivo por produto</option>
+										<option value="segmentado">Repasse segmentado por cliente</option>
+									</select>
+									<span class="help-text">Método de implementação do ajuste de preços</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="periodo-ajuste">Período de ajuste:</label>
+									<select id="periodo-ajuste" name="periodo-ajuste">
+										<option value="1">1 mês</option>
+										<option value="3" selected>3 meses</option>
+										<option value="6">6 meses</option>
+										<option value="12">12 meses</option>
+									</select>
+									<span class="help-text">Período para implementação completa do ajuste de preços</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Parâmetros de Renegociação de Prazos -->
+					<div id="params-renegociacao-prazos" class="strategy-params">
+						<h3>Parâmetros de Renegociação de Prazos com Fornecedores</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="aumento-prazo">Aumento desejado no prazo (dias):</label>
+									<div class="input-group">
+										<input type="number" id="aumento-prazo" name="aumento-prazo" min="0" step="1" value="15">
+										<div class="input-group-append">
+											<span class="input-group-text">dias</span>
+										</div>
+									</div>
+									<span class="help-text">Aumento médio desejado no prazo de pagamento a fornecedores</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="perc-fornecedores">Percentual do volume de compras afetado (%):</label>
+									<div class="input-group">
+										<input type="number" id="perc-fornecedores" name="perc-fornecedores" min="0" max="100" step="1" value="60">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Percentual do volume total de compras que pode ser renegociado</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="contrapartidas">Contrapartidas oferecidas:</label>
+									<select id="contrapartidas" name="contrapartidas">
+										<option value="nenhuma">Nenhuma contrapartida</option>
+										<option value="volume">Aumento de volume de compras</option>
+										<option value="exclusividade">Acordo de exclusividade</option>
+										<option value="contrato">Contrato de longo prazo</option>
+										<option value="preco">Revisão de preço (para mais)</option>
+									</select>
+									<span class="help-text">Contrapartida oferecida em troca do aumento no prazo</span>
+								</div>
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="custo-contrapartida">Custo estimado da contrapartida (%):</label>
+									<div class="input-group">
+										<input type="number" id="custo-contrapartida" name="custo-contrapartida" min="0" max="100" step="0.1" value="0">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Custo estimado da contrapartida em relação ao valor negociado</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="prazo-implementacao">Prazo para implementação:</label>
+									<select id="prazo-implementacao" name="prazo-implementacao">
+										<option value="1">1 mês</option>
+										<option value="2" selected>2 meses</option>
+										<option value="3">3 meses</option>
+										<option value="6">6 meses</option>
+									</select>
+									<span class="help-text">Tempo necessário para implementar as mudanças</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Parâmetros de Antecipação de Recebíveis -->
+					<div id="params-antecipacao-recebiveis" class="strategy-params">
+						<h3>Parâmetros para Antecipação de Recebíveis</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="perc-antecipacao">Percentual das vendas a prazo a antecipar (%):</label>
+									<div class="input-group">
+										<input type="number" id="perc-antecipacao" name="perc-antecipacao" min="0" max="100" step="1" value="50">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Percentual das vendas a prazo que será antecipado</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="taxa-desconto">Taxa de desconto (% a.m.):</label>
+									<div class="input-group">
+										<input type="number" id="taxa-desconto" name="taxa-desconto" min="0" max="100" step="0.1" value="1.8">
+										<div class="input-group-append">
+											<span class="input-group-text">% a.m.</span>
+										</div>
+									</div>
+									<span class="help-text">Taxa mensal cobrada pela instituição financeira para antecipar os recebíveis</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="prazo-antecipacao">Prazo médio de antecipação (dias):</label>
+									<div class="input-group">
+										<input type="number" id="prazo-antecipacao" name="prazo-antecipacao" min="0" step="1" value="25">
+										<div class="input-group-append">
+											<span class="input-group-text">dias</span>
+										</div>
+									</div>
+									<span class="help-text">Número médio de dias que serão antecipados</span>
+								</div>
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="custo-efetivo">Custo efetivo da antecipação (%):</label>
+									<div class="input-group">
+										<input type="number" id="custo-efetivo" name="custo-efetivo" readonly>
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Calculado automaticamente com base no prazo e na taxa</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="modalidade-antecipacao">Modalidade de antecipação:</label>
+									<select id="modalidade-antecipacao" name="modalidade-antecipacao">
+										<option value="duplicatas">Duplicatas e títulos</option>
+										<option value="cartao">Recebíveis de cartão</option>
+										<option value="ambos" selected>Ambos</option>
+									</select>
+									<span class="help-text">Tipo de recebível a ser antecipado</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Parâmetros de Captação de Capital de Giro -->
+					<div id="params-capital-giro" class="strategy-params">
+						<h3>Parâmetros para Captação de Capital de Giro</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="valor-captacao">Valor a captar (% do faturamento mensal):</label>
+									<div class="input-group">
+										<input type="number" id="valor-captacao" name="valor-captacao" min="0" max="1000" step="1" value="100">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Valor a captar como percentual do faturamento mensal médio</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="taxa-juros">Taxa de juros (% a.m.):</label>
+									<div class="input-group">
+										<input type="number" id="taxa-juros" name="taxa-juros" min="0" max="100" step="0.1" value="2.1">
+										<div class="input-group-append">
+											<span class="input-group-text">% a.m.</span>
+										</div>
+									</div>
+									<span class="help-text">Taxa mensal de juros para a linha de capital de giro</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="prazo-pagamento">Prazo para pagamento:</label>
+									<select id="prazo-pagamento" name="prazo-pagamento">
+										<option value="6">6 meses</option>
+										<option value="12" selected>12 meses</option>
+										<option value="18">18 meses</option>
+										<option value="24">24 meses</option>
+										<option value="36">36 meses</option>
+									</select>
+									<span class="help-text">Prazo total para pagamento do empréstimo</span>
+								</div>
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="carencia">Período de carência:</label>
+									<select id="carencia" name="carencia">
+										<option value="0">Sem carência</option>
+										<option value="1">1 mês</option>
+										<option value="2">2 meses</option>
+										<option value="3" selected>3 meses</option>
+										<option value="6">6 meses</option>
+									</select>
+									<span class="help-text">Período de carência para início do pagamento das parcelas</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="modalidade-amortizacao">Modalidade de amortização:</label>
+									<select id="modalidade-amortizacao" name="modalidade-amortizacao">
+										<option value="sac">SAC (amortização constante)</option>
+										<option value="price" selected>PRICE (parcelas iguais)</option>
+									</select>
+									<span class="help-text">Sistema de amortização do empréstimo</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Parâmetros de Otimização do Mix de Produtos/Serviços -->
+					<div id="params-mix-produtos" class="strategy-params">
+						<h3>Parâmetros para Otimização do Mix de Produtos/Serviços</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="perc-ajuste-mix">Percentual do portfólio a ajustar (%):</label>
+									<div class="input-group">
+										<input type="number" id="perc-ajuste-mix" name="perc-ajuste-mix" min="0" max="100" step="1" value="30">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Percentual do portfólio de produtos/serviços que será ajustado</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="foco-ajuste">Foco do ajuste:</label>
+									<select id="foco-ajuste" name="foco-ajuste">
+										<option value="margem">Produtos de maior margem</option>
+										<option value="giro">Produtos de maior giro</option>
+										<option value="ciclo" selected>Produtos com ciclo financeiro menor</option>
+										<option value="balanceado">Balanceamento de portfólio</option>
+									</select>
+									<span class="help-text">Estratégia principal para ajuste do mix</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="impacto-receita">Impacto estimado na receita (%):</label>
+									<div class="input-group">
+										<input type="number" id="impacto-receita" name="impacto-receita" min="-100" max="100" step="0.1" value="-5">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Impacto estimado na receita total após a otimização</span>
+								</div>
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="impacto-margem">Impacto estimado na margem média (p.p.):</label>
+									<div class="input-group">
+										<input type="number" id="impacto-margem" name="impacto-margem" min="-100" max="100" step="0.1" value="3.5">
+										<div class="input-group-append">
+											<span class="input-group-text">p.p.</span>
+										</div>
+									</div>
+									<span class="help-text">Variação da margem média em pontos percentuais</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="prazo-otimizacao">Prazo para implementação completa:</label>
+									<select id="prazo-otimizacao" name="prazo-otimizacao">
+										<option value="1">1 mês</option>
+										<option value="3">3 meses</option>
+										<option value="6" selected>6 meses</option>
+										<option value="12">12 meses</option>
+									</select>
+									<span class="help-text">Tempo necessário para implementar a otimização do mix</span>
+								</div>
+							</div>
+						</div>
+					</div>		
+					<!-- Parâmetros de Diversificação de Meios de Pagamento -->
+					<div id="params-meios-pagamento" class="strategy-params">
+						<h3>Parâmetros para Diversificação dos Meios de Pagamento</h3>
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="dist-atual-vista">Distribuição atual - À vista (%):</label>
+									<div class="input-group">
+										<input type="number" id="dist-atual-vista" name="dist-atual-vista" min="0" max="100" step="1" value="30">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="dist-atual-prazo">Distribuição atual - A prazo (%):</label>
+									<div class="input-group">
+										<input type="number" id="dist-atual-prazo" name="dist-atual-prazo" min="0" max="100" step="1" value="70" readonly>
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					
+						<div class="form-group" style="margin-top: 15px;">
+							<label><strong>Distribuição Desejada</strong></label>
+						</div>
+						
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="dist-nova-vista">À vista (%):</label>
+									<div class="input-group">
+										<input type="number" id="dist-nova-vista" name="dist-nova-vista" min="0" max="100" step="1" value="40">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="dist-nova-30dias">30 dias (%):</label>
+									<div class="input-group">
+										<input type="number" id="dist-nova-30dias" name="dist-nova-30dias" min="0" max="100" step="1" value="30">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="dist-nova-60dias">60 dias (%):</label>
+									<div class="input-group">
+										<input type="number" id="dist-nova-60dias" name="dist-nova-60dias" min="0" max="100" step="1" value="20">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="dist-nova-90dias">90 dias (%):</label>
+									<div class="input-group">
+										<input type="number" id="dist-nova-90dias" name="dist-nova-90dias" min="0" max="100" step="1" value="10">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div class="form-row">
+							<div class="form-column">
+								<div class="form-group">
+									<label for="dist-nova-total">Total (%):</label>
+									<div class="input-group">
+										<input type="number" id="dist-nova-total" name="dist-nova-total" min="0" max="100" step="1" value="100" readonly>
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Soma deve ser igual a 100%</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="taxa-incentivo">Taxa de incentivo para à vista (%):</label>
+									<div class="input-group">
+										<input type="number" id="taxa-incentivo" name="taxa-incentivo" min="0" max="100" step="0.1" value="3">
+										<div class="input-group-append">
+											<span class="input-group-text">%</span>
+										</div>
+									</div>
+									<span class="help-text">Desconto oferecido para pagamentos à vista</span>
+								</div>
+							</div>
+							<div class="form-column">
+								<div class="form-group">
+									<label for="prazo-implementacao-meios">Prazo para implementação:</label>
+									<select id="prazo-implementacao-meios" name="prazo-implementacao-meios">
+										<option value="1">1 mês</option>
+										<option value="2" selected>2 meses</option>
+										<option value="3">3 meses</option>
+										<option value="6">6 meses</option>
+									</select>
+									<span class="help-text">Tempo necessário para implementar a nova distribuição</span>
+								</div>
+							</div>
+						</div>
+							
+						<!-- Botões de Ação -->
+						<div class="buttons-container">
+							<button type="button" class="primary" id="btn-simular">Simular Estratégias</button>
+							<button type="button" class="secondary" id="btn-comparar">Comparar Eficácia</button>
+							<button type="reset" class="outline" id="btn-limpar">Limpar Formulário</button>
+						</div>
+
+						<!-- Área de Resultados (inicialmente oculta) -->
+						<div id="resultados-estrategias" style="margin-top: 30px; display: none;">
+							<div class="group-box">
+								<h3>Resultados da Simulação</h3>
+								<p id="resultado-descricao" style="margin-bottom: 15px;">Resultados da simulação das estratégias selecionadas.</p>
+								
+								<!-- Área para exibição de gráficos e tabelas -->
+								<div class="subtab-container">
+									<div class="subtab-buttons">
+										<button class="subtab-button active" data-subtab="resumo">Resumo</button>
+										<button class="subtab-button" data-subtab="fluxo-caixa">Fluxo de Caixa</button>
+										<button class="subtab-button" data-subtab="comparativo">Comparativo</button>
+										<button class="subtab-button" data-subtab="detalhamento">Detalhamento</button>
+									</div>
+									
+									<div id="resumo" class="subtab-content active">
+										<h4 style="margin-bottom: 15px;">Resumo do Impacto das Estratégias</h4>
+										<div id="grafico-resumo" style="height: 300px; background-color: #f9f9f9; border: 1px dashed #ccc; display: flex; justify-content: center; align-items: center;">
+											[Gráfico de Resumo das Estratégias]
+										</div>
+										<div style="margin-top: 20px;">
+											<table style="width: 100%; border-collapse: collapse;">
+												<thead>
+													<tr style="background-color: #f5f5f5;">
+														<th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Estratégia</th>
+														<th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Impacto no Caixa</th>
+														<th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Custo de Implementação</th>
+														<th style="padding: 10px; text-align: right; border: 1px solid #ddd;">ROI</th>
+														<th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Viabilidade</th>
+													</tr>
+												</thead>
+												<tbody id="tabela-resumo-corpo">
+													<!-- Será preenchido via JavaScript -->
+												</tbody>
+											</table>
+										</div>
+									</div>
+									
+									<div id="fluxo-caixa" class="subtab-content">
+										<h4 style="margin-bottom: 15px;">Projeção de Fluxo de Caixa</h4>
+										<div id="grafico-fluxo" style="height: 300px; background-color: #f9f9f9; border: 1px dashed #ccc; display: flex; justify-content: center; align-items: center;">
+											[Gráfico de Fluxo de Caixa Projetado]
+										</div>
+									</div>
+									
+									<div id="comparativo" class="subtab-content">
+										<h4 style="margin-bottom: 15px;">Comparativo de Eficácia das Estratégias</h4>
+										<div id="grafico-comparativo" style="height: 300px; background-color: #f9f9f9; border: 1px dashed #ccc; display: flex; justify-content: center; align-items: center;">
+											[Gráfico Comparativo de Estratégias]
+										</div>
+									</div>
+									
+									<div id="detalhamento" class="subtab-content">
+										<h4 style="margin-bottom: 15px;">Detalhamento das Estratégias</h4>
+										<div id="conteudo-detalhamento">
+											<!-- Será preenchido via JavaScript -->
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			<!-- Conteúdo da aba Memória de Cálculo -->
+			<div id="memoria-calculo" class="tab-content">
+				<div class="group-box">
+					<h2 class="section-title">Memória de Cálculo</h2>
+					<p class="section-subtitle">Visualize e analise todos os cálculos realizados pelo simulador para cada cenário.</p>
+					<!-- Memória de cálculo detalhada será exibida aqui -->
+					<div class="memory-status" id="memory-status">
+						Carregando memória de cálculo...
+					</div>				
+					<div class="memory-controls">
+						<div class="control-group">
+							<label for="cenario-select">Cenário:</label>
+							<select id="cenario-select" class="form-control">
+								<option value="cenario-padrao">Cenário Padrão (Atual)</option>
+								<option value="cenario-otimista">Cenário Otimista</option>
+								<option value="cenario-pessimista">Cenário Pessimista</option>
+								<option value="cenario-personalizado">Cenário Personalizado</option>
+							</select>
+						</div>
+						
+						<div class="control-group">
+							<label for="periodo-select">Período:</label>
+							<select id="periodo-select" class="form-control">
+								<option value="todos">Todos os períodos</option>
+								<option value="2026">2026</option>
+								<option value="2027">2027</option>
+								<option value="2028">2028</option>
+								<option value="2029">2029</option>
+								<option value="2030">2030</option>
+								<option value="2031">2031</option>
+								<option value="2032">2032</option>
+								<option value="2033">2033</option>
+							</select>
+						</div>					
+						<div class="control-group">
+							<label>Filtros:</label>
+							<div class="checkbox-group">
+								<div class="checkbox-item">
+									<input type="checkbox" id="filtro-fluxo-atual" checked>
+									<label for="filtro-fluxo-atual">Fluxo de Caixa Atual</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="filtro-fluxo-split" checked>
+									<label for="filtro-fluxo-split">Fluxo de Caixa com Split</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="filtro-impacto" checked>
+									<label for="filtro-impacto">Impacto no Capital de Giro</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="filtro-estrategias" checked>
+									<label for="filtro-estrategias">Estratégias de Mitigação</label>
+								</div>
+							</div>
+						</div>					
+						<div class="memory-toolbar">
+							<div class="toolbar-group">
+								<button type="button" class="btn btn-primary" id="btn-exportar-txt">
+									<i class="icon-download"></i> Exportar TXT
+								</button>
+								<button type="button" class="btn btn-primary" id="btn-exportar-pdf">
+									<i class="icon-pdf"></i> Exportar PDF
+								</button>
+								<button type="button" class="btn btn-outline" id="btn-copiar">
+									<i class="icon-copy"></i> Copiar
+								</button>
+							</div>						
+							<div class="toolbar-group">
+								<span class="line-count" id="line-count">Linhas: 0</span>
+								<div class="search-bar">
+									<input type="text" id="search-memory" placeholder="Pesquisar...">
+									<button type="button" class="btn btn-outline btn-sm" id="btn-search">Buscar</button>
+								</div>
+								<label>
+									<input type="checkbox" id="mostrar-linhas"> Mostrar números de linha
+								</label>
+							</div>
+						</div> <!-- Fechamento correto do memory-toolbar -->
+						
+						<div class="memory-container" id="memory-container">
+							<div class="line-numbers" id="line-numbers" style="display:none;"></div>
+							<div class="memory-content" id="memory-content">
+								<!-- O conteúdo da memória de cálculo será inserido aqui dinamicamente via JavaScript -->
+								<div class="calculation-section">
+									<div class="calculation-section-title">== PARÂMETROS DE ENTRADA ==</div>
+									<div class="calculation-line input">Faturamento: R$ 1.000.000,00</div>
+									<div class="calculation-line input">Período: Mensal</div>
+									<div class="calculation-line input">Setor: Comércio Varejista</div>
+									<div class="calculation-line input">Regime Tributário: Lucro Presumido</div>
+									<div class="calculation-line input">Margem Operacional: 25%</div>
+									<div class="calculation-line input">Prazo Médio de Recebimento (PMR): 30 dias</div>
+									<div class="calculation-line input">Prazo Médio de Pagamento (PMP): 40 dias</div>
+									<div class="calculation-line input">Prazo Médio de Estoque (PME): 45 dias</div>
+									<div class="calculation-line input">Vendas à Vista: 30%</div>
+									<div class="calculation-line input">Vendas a Prazo: 70%</div>
+									<div class="calculation-line input">Alíquota Efetiva de Tributos: 26,5%</div>
+								</div>
+								
+								<div class="calculation-section">
+									<div class="calculation-section-title">== CÁLCULO DO CICLO FINANCEIRO ATUAL ==</div>
+									<div class="calculation-line comment"># Ciclo Financeiro = PMR + PME - PMP</div>
+									<div class="calculation-line formula">Ciclo Financeiro = 30 + 45 - 40</div>
+									<div class="calculation-line result">Ciclo Financeiro = 35 dias</div>
+								</div>
+								
+								<div class="calculation-section">
+									<div class="calculation-section-title">== CÁLCULO DO FLUXO DE CAIXA ATUAL ==</div>
+									<div class="calculation-line comment"># Cálculo das vendas mensais por modalidade</div>
+									<div class="calculation-line formula">Vendas à Vista = Faturamento * % Vendas à Vista</div>
+									<div class="calculation-line formula">Vendas à Vista = R$ 1.000.000,00 * 30%</div>
+									<div class="calculation-line result">Vendas à Vista = R$ 300.000,00</div>
+									<div class="calculation-line formula">Vendas a Prazo = Faturamento * % Vendas a Prazo</div>
+									<div class="calculation-line formula">Vendas a Prazo = R$ 1.000.000,00 * 70%</div>
+									<div class="calculation-line result">Vendas a Prazo = R$ 700.000,00</div>
+									
+									<div class="calculation-line comment"># Cálculo dos impostos</div>
+									<div class="calculation-line formula">Impostos = Faturamento * Alíquota Efetiva</div>
+									<div class="calculation-line formula">Impostos = R$ 1.000.000,00 * 26,5%</div>
+									<div class="calculation-line result">Impostos = R$ 265.000,00</div>
+									
+									<div class="calculation-line comment"># Cálculo do prazo de pagamento do imposto atual</div>
+									<div class="calculation-line variable">Prazo de Pagamento do Imposto = 25 dias (após o mês)</div>
+									<div class="calculation-line formula">Prazo Efetivo = 30 + 25 = 55 dias</div>
+								</div>
+								
+								<div class="calculation-section">
+									<div class="calculation-section-title">== CÁLCULO DO FLUXO DE CAIXA COM SPLIT PAYMENT ==</div>
+									<div class="calculation-line comment"># Parâmetros do Split Payment para 2026</div>
+									<div class="calculation-line variable">Percentual de Implementação (2026) = 10%</div>
+									<div class="calculation-line variable">Alíquota CBS = 8,8%</div>
+									<div class="calculation-line variable">Alíquota IBS = 17,7%</div>
+									
+									<div class="calculation-line comment"># Cálculo dos impostos em Split Payment</div>
+									<div class="calculation-line formula">Impostos Split = Impostos * Percentual de Implementação</div>
+									<div class="calculation-line formula">Impostos Split = R$ 265.000,00 * 10%</div>
+									<div class="calculation-line result">Impostos Split = R$ 26.500,00</div>
+									
+									<div class="calculation-line formula">Impostos Convencionais = Impostos - Impostos Split</div>
+									<div class="calculation-line formula">Impostos Convencionais = R$ 265.000,00 - R$ 26.500,00</div>
+									<div class="calculation-line result">Impostos Convencionais = R$ 238.500,00</div>
+									
+									<div class="calculation-line comment"># Cálculo do impacto no fluxo de vendas a prazo</div>
+									<div class="calculation-line formula">Impostos Split nas Vendas a Prazo = Vendas a Prazo * Alíquota Efetiva * % Implementação</div>
+									<div class="calculation-line formula">Impostos Split nas Vendas a Prazo = R$ 700.000,00 * 26,5% * 10%</div>
+									<div class="calculation-line result">Impostos Split nas Vendas a Prazo = R$ 18.550,00</div>
+								</div>
+								
+								<div class="calculation-section">
+									<div class="calculation-section-title">== IMPACTO NO CAPITAL DE GIRO ==</div>
+									<div class="calculation-line comment"># Cálculo do Capital de Giro Comprometido no modelo atual</div>
+									<div class="calculation-line formula">Capital de Giro Atual = (Vendas a Prazo / 30) * PMR - (Impostos / 30) * (Prazo Efetivo)</div>
+									<div class="calculation-line formula">Capital de Giro Atual = (R$ 700.000,00 / 30) * 30 - (R$ 265.000,00 / 30) * 55</div>
+									<div class="calculation-line formula">Capital de Giro Atual = R$ 700.000,00 - R$ 485.833,33</div>
+									<div class="calculation-line result">Capital de Giro Atual = R$ 214.166,67</div>
+									
+									<div class="calculation-line comment"># Cálculo do Capital de Giro Comprometido com Split Payment</div>
+									<div class="calculation-line formula">Capital de Giro Split = (Vendas a Prazo / 30) * PMR - (Impostos Convencionais / 30) * (Prazo Efetivo) - Impostos Split nas Vendas a Prazo</div>
+									<div class="calculation-line formula">Capital de Giro Split = (R$ 700.000,00 / 30) * 30 - (R$ 238.500,00 / 30) * 55 - R$ 18.550,00</div>
+									<div class="calculation-line formula">Capital de Giro Split = R$ 700.000,00 - R$ 437.250,00 - R$ 18.550,00</div>
+									<div class="calculation-line result">Capital de Giro Split = R$ 244.200,00</div>
+									
+									<div class="calculation-line comment"># Cálculo do Impacto no Capital de Giro</div>
+									<div class="calculation-line formula">Impacto = Capital de Giro Atual - Capital de Giro Split</div>
+									<div class="calculation-line formula">Impacto = R$ 214.166,67 - R$ 244.200,00</div>
+									<div class="calculation-line result">Impacto = -R$ 30.033,33 (Redução no Capital de Giro)</div>
+								</div>
+								
+								<div class="calculation-section">
+									<div class="calculation-section-title">== ESTRATÉGIAS DE MITIGAÇÃO ==</div>
+									<div class="calculation-line comment"># Análise de Estratégia: Antecipação de Recebíveis</div>
+									<div class="calculation-line variable">Taxa de Desconto = 1,8% a.m.</div>
+									<div class="calculation-line variable">Percentual a Antecipar = 50% das vendas a prazo</div>
+									<div class="calculation-line formula">Valor a Antecipar = Vendas a Prazo * Percentual a Antecipar</div>
+									<div class="calculation-line formula">Valor a Antecipar = R$ 700.000,00 * 50%</div>
+									<div class="calculation-line result">Valor a Antecipar = R$ 350.000,00</div>
+									
+									<div class="calculation-line formula">Custo da Antecipação = Valor a Antecipar * Taxa de Desconto * (PMR / 30)</div>
+									<div class="calculation-line formula">Custo da Antecipação = R$ 350.000,00 * 1,8% * (30 / 30)</div>
+									<div class="calculation-line result">Custo da Antecipação = R$ 6.300,00</div>
+									
+									<div class="calculation-line formula">Benefício Líquido = Valor a Antecipar - Custo da Antecipação - Impacto</div>
+									<div class="calculation-line formula">Benefício Líquido = R$ 350.000,00 - R$ 6.300,00 - R$ 30.033,33</div>
+									<div class="calculation-line result">Benefício Líquido = R$ 313.666,67</div>
+								</div>
+							</div>
+						</div>
+					</div> <!-- Fechamento correto do memory-controls -->
+				</div> <!-- Fechamento correto do memoria-calculo -->
+			</div>
+			<div id="ajuda-documentacao" class="tab-content">
+			  <div class="group-box">
+				  <h2>Ajuda e Documentação</h2>		
+					<div class="search-container">
+						<input type="text" class="search-input" placeholder="Busque por tópicos, termos ou dúvidas...">
+					</div>		
+					<div class="help-container">
+						<!-- Menu Lateral -->
+						<div class="help-sidebar">
+							<div class="help-nav-title">Índice</div>
+							<ul class="help-nav">
+								<li class="help-nav-item">
+									<a href="#o-que-e-split-payment" class="help-nav-link active" data-target="o-que-e-split-payment">O que é Split Payment</a>
+								</li>
+								<li class="help-nav-item">
+									<a href="#impactos-fluxo-caixa" class="help-nav-link" data-target="impactos-fluxo-caixa">Impactos no Fluxo de Caixa</a>
+								</li>
+								<li class="help-nav-item">
+									<a href="#como-usar-simulador" class="help-nav-link" data-target="como-usar-simulador">Como usar o Simulador</a>
+									<ul class="help-nav">
+										<li class="help-nav-subitem">
+											<a href="#simulacao-principal" class="help-nav-link" data-target="simulacao-principal">Simulação Principal</a>
+										</li>
+										<li class="help-nav-subitem">
+											<a href="#configuracoes-setoriais" class="help-nav-link" data-target="configuracoes-setoriais">Configurações Setoriais</a>
+										</li>
+										<li class="help-nav-subitem">
+											<a href="#estrategias-mitigacao" class="help-nav-link" data-target="estrategias-mitigacao">Estratégias de Mitigação</a>
+										</li>
+										<li class="help-nav-subitem">
+											<a href="#memoria-calculo" class="help-nav-link" data-target="memoria-calculo">Memória de Cálculo</a>
+										</li>
+									</ul>
+								</li>
+								<li class="help-nav-item">
+									<a href="#interpretando-resultados" class="help-nav-link" data-target="interpretando-resultados">Interpretando os Resultados</a>
+								</li>
+								<li class="help-nav-item">
+									<a href="#estrategias-mitigacao-info" class="help-nav-link" data-target="estrategias-mitigacao-info">Estratégias de Mitigação</a>
+								</li>
+								<li class="help-nav-item">
+									<a href="#glossario" class="help-nav-link" data-target="glossario">Glossário de Termos</a>
+								</li>
+								<li class="help-nav-item">
+									<a href="#faq" class="help-nav-link" data-target="faq">FAQ (Perguntas Frequentes)</a>
+								</li>
+								<li class="help-nav-item">
+									<a href="#exemplos-praticos" class="help-nav-link" data-target="exemplos-praticos">Exemplos Práticos</a>
+								</li>
+								<li class="help-nav-item">
+									<a href="#download-recursos" class="help-nav-link" data-target="download-recursos">Download de Recursos</a>
+								</li>
+							</ul>
+						</div>
+						
+						<!-- Conteúdo Principal -->
+						<div class="help-content">
+							<!-- Seção: O que é Split Payment -->
+							<div id="o-que-e-split-payment" class="help-section active">
+								<h2 class="help-section-title">O que é Split Payment</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Conceito e Funcionamento</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre o conceito de Split Payment será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Base Legal</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre a base legal do Split Payment será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Cronograma de Implementação</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre o cronograma de implementação será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-card">
+									<div class="help-card-title">Importante</div>
+									<p>[Informação importante sobre o Split Payment será inserida aqui]</p>
+								</div>
+								
+								<div class="help-navigation">
+									<span></span>
+									<a href="#impactos-fluxo-caixa" class="help-nav-next" data-target="impactos-fluxo-caixa">Impactos no Fluxo de Caixa</a>
+								</div>
+							</div>
+							
+							<!-- Seção: Impactos no Fluxo de Caixa -->
+							<div id="impactos-fluxo-caixa" class="help-section">
+								<h2 class="help-section-title">Impactos no Fluxo de Caixa</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Principais Alterações no Ciclo Financeiro</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre as alterações no ciclo financeiro será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Análise Setorial</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre a análise setorial será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Impacto no Capital de Giro</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre o impacto no capital de giro será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#o-que-e-split-payment" class="help-nav-prev" data-target="o-que-e-split-payment">O que é Split Payment</a>
+									<a href="#como-usar-simulador" class="help-nav-next" data-target="como-usar-simulador">Como usar o Simulador</a>
+								</div>
+							</div>
+							
+							<!-- Seção: Como usar o Simulador -->
+							<div id="como-usar-simulador" class="help-section">
+								<h2 class="help-section-title">Como usar o Simulador</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Visão Geral da Interface</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre a visão geral da interface será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Preenchimento dos Formulários</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre o preenchimento dos formulários será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Navegação entre Abas</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre a navegação entre abas será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#impactos-fluxo-caixa" class="help-nav-prev" data-target="impactos-fluxo-caixa">Impactos no Fluxo de Caixa</a>
+									<a href="#interpretando-resultados" class="help-nav-next" data-target="interpretando-resultados">Interpretando os Resultados</a>
+								</div>
+							</div>
+							
+							<!-- Subseção: Simulação Principal -->
+							<div id="simulacao-principal" class="help-section">
+								<h2 class="help-section-title">Simulação Principal</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Parâmetros de Entrada</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre os parâmetros de entrada será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Executando a Simulação</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre como executar a simulação será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#como-usar-simulador" class="help-nav-prev" data-target="como-usar-simulador">Como usar o Simulador</a>
+									<a href="#configuracoes-setoriais" class="help-nav-next" data-target="configuracoes-setoriais">Configurações Setoriais</a>
+								</div>
+							</div>
+							
+							<!-- Subseção: Configurações Setoriais -->
+							<div id="configuracoes-setoriais" class="help-section">
+								<h2 class="help-section-title">Configurações Setoriais</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Configurações por Setor</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre as configurações por setor será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Cronograma de Implementação</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre o cronograma de implementação será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#simulacao-principal" class="help-nav-prev" data-target="simulacao-principal">Simulação Principal</a>
+									<a href="#estrategias-mitigacao" class="help-nav-next" data-target="estrategias-mitigacao">Estratégias de Mitigação</a>
+								</div>
+							</div>
+							
+							<!-- Subseção: Estratégias de Mitigação (aba) -->
+							<div id="estrategias-mitigacao" class="help-section">
+								<h2 class="help-section-title">Estratégias de Mitigação (aba)</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Seleção de Estratégias</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre a seleção de estratégias será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Configuração de Parâmetros</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre a configuração de parâmetros será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#configuracoes-setoriais" class="help-nav-prev" data-target="configuracoes-setoriais">Configurações Setoriais</a>
+									<a href="#memoria-calculo" class="help-nav-next" data-target="memoria-calculo">Memória de Cálculo</a>
+								</div>
+							</div>
+							
+							<!-- Subseção: Memória de Cálculo -->
+							<div id="memoria-calculo" class="help-section">
+								<h2 class="help-section-title">Memória de Cálculo</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Visualização dos Cálculos</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre a visualização dos cálculos será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Exportação e Compartilhamento</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre exportação e compartilhamento será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#estrategias-mitigacao" class="help-nav-prev" data-target="estrategias-mitigacao">Estratégias de Mitigação (aba)</a>
+									<a href="#interpretando-resultados" class="help-nav-next" data-target="interpretando-resultados">Interpretando os Resultados</a>
+								</div>
+							</div>
+							
+							<!-- Seção: Interpretando os Resultados -->
+							<div id="interpretando-resultados" class="help-section">
+								<h2 class="help-section-title">Interpretando os Resultados</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Análise dos Gráficos</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre a análise dos gráficos será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Entendendo os Indicadores</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre o entendimento dos indicadores será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Comparativo de Cenários</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre o comparativo de cenários será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#como-usar-simulador" class="help-nav-prev" data-target="como-usar-simulador">Como usar o Simulador</a>
+									<a href="#estrategias-mitigacao-info" class="help-nav-next" data-target="estrategias-mitigacao-info">Estratégias de Mitigação</a>
+								</div>
+							</div>
+							
+							<!-- Seção: Estratégias de Mitigação (informações) -->
+							<div id="estrategias-mitigacao-info" class="help-section">
+								<h2 class="help-section-title">Estratégias de Mitigação</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Ajustes de Preços</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre ajustes de preços será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Renegociação de Prazos</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre renegociação de prazos será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Antecipação de Recebíveis</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre antecipação de recebíveis será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Capital de Giro</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre capital de giro será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Otimização do Mix de Produtos/Serviços</h3>
+									<div class="help-text">
+										<p>[Conteúdo sobre otimização do mix de produtos/serviços será inserido aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#interpretando-resultados" class="help-nav-prev" data-target="interpretando-resultados">Interpretando os Resultados</a>
+									<a href="#glossario" class="help-nav-next" data-target="glossario">Glossário de Termos</a>
+								</div>
+							</div>
+							
+							<!-- Seção: Glossário de Termos -->
+							<div id="glossario" class="help-section">
+								<h2 class="help-section-title">Glossário de Termos</h2>
+								
+								<div class="help-subsection">
+									<div class="glossary-term">
+										<div class="glossary-term-title">Split Payment</div>
+										<div class="glossary-term-definition">[Definição do termo Split Payment será inserida aqui]</div>
+									</div>
+									
+									<div class="glossary-term">
+										<div class="glossary-term-title">IBS (Imposto sobre Bens e Serviços)</div>
+										<div class="glossary-term-definition">[Definição do termo IBS será inserida aqui]</div>
+									</div>
+									
+									<div class="glossary-term">
+										<div class="glossary-term-title">CBS (Contribuição sobre Bens e Serviços)</div>
+										<div class="glossary-term-definition">[Definição do termo CBS será inserida aqui]</div>
+									</div>
+									
+									<div class="glossary-term">
+										<div class="glossary-term-title">Ciclo Financeiro</div>
+										<div class="glossary-term-definition">[Definição do termo Ciclo Financeiro será inserida aqui]</div>
+									</div>
+									
+									<div class="glossary-term">
+										<div class="glossary-term-title">PMR (Prazo Médio de Recebimento)</div>
+										<div class="glossary-term-definition">[Definição do termo PMR será inserida aqui]</div>
+									</div>
+									
+									<div class="glossary-term">
+										<div class="glossary-term-title">PMP (Prazo Médio de Pagamento)</div>
+										<div class="glossary-term-definition">[Definição do termo PMP será inserida aqui]</div>
+									</div>
+									
+									<div class="glossary-term">
+										<div class="glossary-term-title">Capital de Giro</div>
+										<div class="glossary-term-definition">[Definição do termo Capital de Giro será inserida aqui]</div>
+									</div>
+									
+									<!-- Outros termos serão adicionados aqui -->
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#estrategias-mitigacao-info" class="help-nav-prev" data-target="estrategias-mitigacao-info">Estratégias de Mitigação</a>
+									<a href="#faq" class="help-nav-next" data-target="faq">FAQ (Perguntas Frequentes)</a>
+								</div>
+							</div>
+							
+							<!-- Seção: FAQ (Perguntas Frequentes) -->
+							<div id="faq" class="help-section">
+								<h2 class="help-section-title">FAQ (Perguntas Frequentes)</h2>
+								
+								<div class="help-subsection">
+									<div class="faq-item">
+										<div class="faq-question" onclick="toggleFAQ(this)">Qual é o impacto do Split Payment no meu negócio?</div>
+										<div class="faq-answer">
+											<p>[Resposta à pergunta será inserida aqui]</p>
+										</div>
+									</div>
+									
+									<div class="faq-item">
+										<div class="faq-question" onclick="toggleFAQ(this)">Quando começa a vigorar o Split Payment?</div>
+										<div class="faq-answer">
+											<p>[Resposta à pergunta será inserida aqui]</p>
+										</div>
+									</div>
+									
+									<div class="faq-item">
+										<div class="faq-question" onclick="toggleFAQ(this)">Como posso mitigar os efeitos do Split Payment?</div>
+										<div class="faq-answer">
+											<p>[Resposta à pergunta será inserida aqui]</p>
+										</div>
+									</div>
+									
+									<div class="faq-item">
+										<div class="faq-question" onclick="toggleFAQ(this)">O Split Payment afeta todos os setores da mesma forma?</div>
+										<div class="faq-answer">
+											<p>[Resposta à pergunta será inserida aqui]</p>
+										</div>
+									</div>
+									
+									<div class="faq-item">
+										<div class="faq-question" onclick="toggleFAQ(this)">Como posso acompanhar os créditos tributários no novo sistema?</div>
+										<div class="faq-answer">
+											<p>[Resposta à pergunta será inserida aqui]</p>
+										</div>
+									</div>
+									
+									<!-- Outras perguntas serão adicionadas aqui -->
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#glossario" class="help-nav-prev" data-target="glossario">Glossário de Termos</a>
+									<a href="#exemplos-praticos" class="help-nav-next" data-target="exemplos-praticos">Exemplos Práticos</a>
+								</div>
+							</div>
+							
+							<!-- Seção: Exemplos Práticos -->
+							<div id="exemplos-praticos" class="help-section">
+								<h2 class="help-section-title">Exemplos Práticos</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Exemplo 1: Comércio Varejista</h3>
+									
+									<div class="example-section">
+										<div class="example-title">Cenário</div>
+										<p>[Descrição do cenário será inserida aqui]</p>
+									</div>
+									
+									<div class="example-section">
+										<div class="example-title">Dados de Entrada</div>
+										<p>[Dados de entrada serão inseridos aqui]</p>
+									</div>
+									
+									<div class="example-section">
+										<div class="example-title">Resultados da Simulação</div>
+										<p>[Resultados da simulação serão inseridos aqui]</p>
+									</div>
+									
+									<div class="example-section">
+										<div class="example-title">Estratégias Recomendadas</div>
+										<p>[Estratégias recomendadas serão inseridas aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Exemplo 2: Indústria de Transformação</h3>
+									
+									<div class="example-section">
+										<div class="example-title">Cenário</div>
+										<p>[Descrição do cenário será inserida aqui]</p>
+									</div>
+									
+									<div class="example-section">
+										<div class="example-title">Dados de Entrada</div>
+										<p>[Dados de entrada serão inseridos aqui]</p>
+									</div>
+									
+									<div class="example-section">
+										<div class="example-title">Resultados da Simulação</div>
+										<p>[Resultados da simulação serão inseridos aqui]</p>
+									</div>
+									
+									<div class="example-section">
+										<div class="example-title">Estratégias Recomendadas</div>
+										<p>[Estratégias recomendadas serão inseridas aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Exemplo 3: Prestação de Serviços</h3>
+									
+									<div class="example-section">
+										<div class="example-title">Cenário</div>
+										<p>[Descrição do cenário será inserida aqui]</p>
+									</div>
+									
+									<div class="example-section">
+										<div class="example-title">Dados de Entrada</div>
+										<p>[Dados de entrada serão inseridos aqui]</p>
+									</div>
+									
+									<div class="example-section">
+										<div class="example-title">Resultados da Simulação</div>
+										<p>[Resultados da simulação serão inseridos aqui]</p>
+									</div>
+									
+									<div class="example-section">
+										<div class="example-title">Estratégias Recomendadas</div>
+										<p>[Estratégias recomendadas serão inseridas aqui]</p>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#faq" class="help-nav-prev" data-target="faq">FAQ (Perguntas Frequentes)</a>
+									<a href="#download-recursos" class="help-nav-next" data-target="download-recursos">Download de Recursos</a>
+								</div>
+							</div>
+							
+							<!-- Seção: Download de Recursos -->
+							<div id="download-recursos" class="help-section">
+								<h2 class="help-section-title">Download de Recursos</h2>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Materiais Complementares</h3>
+									<p>Acesse recursos adicionais para aprofundar seus conhecimentos sobre o Split Payment e seu impacto no fluxo de caixa.</p>
+									
+									<div class="resources-grid">
+										<div class="resource-card">
+											<div class="resource-icon">📊</div>
+											<div class="resource-title">Planilha de Simulação Auxiliar</div>
+											<div class="resource-description">Ferramenta complementar para simulações avançadas de impacto no fluxo de caixa.</div>
+											<a href="#" class="resource-link">Download Excel</a>
+										</div>
+										
+										<div class="resource-card">
+											<div class="resource-icon">📑</div>
+											<div class="resource-title">Guia Completo do Split Payment</div>
+											<div class="resource-description">E-book detalhado sobre o funcionamento e impactos do Split Payment.</div>
+											<a href="#" class="resource-link">Download PDF</a>
+										</div>
+										
+										<div class="resource-card">
+											<div class="resource-icon">📽️</div>
+											<div class="resource-title">Webinar: Estratégias de Mitigação</div>
+											<div class="resource-description">Gravação do webinar com especialistas sobre estratégias eficazes.</div>
+											<a href="#" class="resource-link">Acesso ao Vídeo</a>
+										</div>
+										
+										<div class="resource-card">
+											<div class="resource-icon">📋</div>
+											<div class="resource-title">Checklist de Preparação</div>
+											<div class="resource-description">Lista de verificação para preparar sua empresa para o Split Payment.</div>
+											<a href="#" class="resource-link">Download PDF</a>
+										</div>
+									</div>
+								</div>
+								
+								<div class="help-subsection">
+									<h3 class="help-subsection-title">Legislação e Normas</h3>
+									
+									<div class="resources-grid">
+										<div class="resource-card">
+											<div class="resource-icon">⚖️</div>
+											<div class="resource-title">Lei Complementar 214/2025</div>
+											<div class="resource-description">Texto completo da legislação que regulamenta o Split Payment.</div>
+											<a href="#" class="resource-link">Download PDF</a>
+										</div>
+										
+										<div class="resource-card">
+											<div class="resource-icon">📜</div>
+											<div class="resource-title">Instrução Normativa RFB</div>
+											<div class="resource-description">Regulamentação específica da Receita Federal para o Split Payment.</div>
+											<a href="#" class="resource-link">Download PDF</a>
+										</div>
+										
+										<div class="resource-card">
+											<div class="resource-icon">📘</div>
+											<div class="resource-title">Manual de Procedimentos</div>
+											<div class="resource-description">Manual operacional para adequação ao Split Payment.</div>
+											<a href="#" class="resource-link">Download PDF</a>
+										</div>
+									</div>
+								</div>
+								
+								<div class="help-navigation">
+									<a href="#exemplos-praticos" class="help-nav-prev" data-target="exemplos-praticos">Exemplos Práticos</a>
+									<span></span>
+								</div>
+							</div>
+							
+						</div>
+					</div>
+				</div>
+			</div>
+    </main>
+
+		<!-- Rodapé com informação de copyright -->
+		<div class="footer">
+			&copy; 2025 Expertzy Inteligência Tributária
+		</div>
+	</div>
+
+	 <!-- Scripts do Simulador -->
+	<script src="js/formatacao.js"></script>
+	<script src="js/tab-navigation-system.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/formulario.js"></script>
+	<script src="js/configuracoes-setoriais.js"></script>
+</body>
+</html>

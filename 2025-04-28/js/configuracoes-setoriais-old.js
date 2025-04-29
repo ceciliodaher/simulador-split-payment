@@ -55,6 +55,7 @@ window.restaurarPadroes = function() {
 		},
 
 		// Método de inicialização
+		// No arquivo configuracoes-setoriais.js, modificar o método inicializar:
 		inicializar: function() {
 			console.log('Inicializando módulo ConfiguracoesSetoriais...');
 
@@ -96,46 +97,44 @@ window.restaurarPadroes = function() {
 
 		// Métodos públicos
 		adicionarSetor: function() {
-			const tabelaSetores = document.getElementById('sector-table').getElementsByTagName('tbody')[0];
-			const novaLinha = document.createElement('tr');
-			novaLinha.id = `setor-${this._nextSetorId}`;
+		const tabelaSetores = document.getElementById('sector-table').getElementsByTagName('tbody')[0];
+		const novaLinha = document.createElement('tr');
+		novaLinha.id = `setor-${this._nextSetorId}`;
 
-			// Obter os setores pré-definidos
-			const setoresOptions = this._obterOpcoesSetores();
-			
-			console.log(`Adicionando novo setor com ID ${this._nextSetorId}`);
+		// Obter os setores pré-definidos
+		const setoresOptions = this._obterOpcoesSetores();
 
-			novaLinha.innerHTML = `
-				<td>
-					<select name="setor-nome-${this._nextSetorId}" class="setor-select" data-id="${this._nextSetorId}">
-						<option value="">Selecione um setor...</option>
-						${setoresOptions}
-					</select>
-				</td>
-				<td><input type="number" name="setor-aliquota-${this._nextSetorId}" min="0" max="100" step="0.01" value="26.5"></td>
-				<td><input type="number" name="setor-reducao-${this._nextSetorId}" min="0" max="100" step="0.01" value="0"></td>
-				<td>
-					<select name="setor-cronograma-${this._nextSetorId}">
-						<option value="padrao">Cronograma Padrão</option>
-						<option value="proprio">Cronograma Específico</option>
-					</select>
-				</td>
-				<td>
-					<button type="button" class="btn btn-outline btn-sm" onclick="configurarCronogramaSetor(${this._nextSetorId})">Configurar</button>
-					<button type="button" class="btn btn-accent btn-sm" onclick="removerSetor(${this._nextSetorId})">Remover</button>
-				</td>
-			`;
+		novaLinha.innerHTML = `
+			<td>
+				<select name="setor-nome-${this._nextSetorId}" class="setor-select" data-id="${this._nextSetorId}">
+					<option value="">Selecione um setor...</option>
+					${setoresOptions}
+				</select>
+			</td>
+			<td><input type="number" name="setor-aliquota-${this._nextSetorId}" min="0" max="100" step="0.01" value="26.5"></td>
+			<td><input type="number" name="setor-reducao-${this._nextSetorId}" min="0" max="100" step="0.01" value="0"></td>
+			<td>
+				<select name="setor-cronograma-${this._nextSetorId}">
+					<option value="padrao">Cronograma Padrão</option>
+					<option value="proprio">Cronograma Específico</option>
+				</select>
+			</td>
+			<td>
+				<button type="button" class="btn btn-outline btn-sm" onclick="configurarCronogramaSetor(${this._nextSetorId})">Configurar</button>
+				<button type="button" class="btn btn-accent btn-sm" onclick="removerSetor(${this._nextSetorId})">Remover</button>
+			</td>
+		`;
 
-			tabelaSetores.appendChild(novaLinha);
+		tabelaSetores.appendChild(novaLinha);
 
-			// Adicionar evento de mudança para preencher dados automaticamente
-			const selectSetor = document.querySelector(`select[name="setor-nome-${this._nextSetorId}"]`);
-			if (selectSetor) {
-				selectSetor.addEventListener('change', this._preencherDadosSetor.bind(this));
-			}
+		// Adicionar evento de mudança para preencher dados automaticamente
+		const selectSetor = document.querySelector(`select[name="setor-nome-${this._nextSetorId}"]`);
+		if (selectSetor) {
+			selectSetor.addEventListener('change', this._preencherDadosSetor.bind(this));
+		}
 
-			this._nextSetorId++;
-		},
+		this._nextSetorId++;
+	},
 
 		removerSetor: function(id) {
 			if (confirm('Confirma a exclusão deste setor?')) {
@@ -155,20 +154,7 @@ window.restaurarPadroes = function() {
 				select.value = "proprio";
 			}
 
-			// Encontrar o nome do setor (agora pode ser um select ou input)
-			let nomeSetor = "";
-			const selectNome = document.querySelector(`select[name="setor-nome-${id}"]`);
-			const inputNome = document.querySelector(`input[name="setor-nome-${id}"]`);
-			
-			if (selectNome) {
-				const selectedOption = selectNome.options[selectNome.selectedIndex];
-				nomeSetor = selectedOption ? selectedOption.text : `Setor ${id}`;
-			} else if (inputNome) {
-				nomeSetor = inputNome.value || `Setor ${id}`;
-			} else {
-				nomeSetor = `Setor ${id}`;
-			}
-			
+			const nomeSetor = document.querySelector(`input[name="setor-nome-${id}"]`).value;
 			document.getElementById('modal-setor-nome').textContent = nomeSetor;
 			document.getElementById('modal-setor-id').value = id;
 
@@ -218,6 +204,7 @@ window.restaurarPadroes = function() {
 			}
 		},
 
+		// No método salvarConfiguracoes do objeto SimuladorApp.ConfiguracoesSetoriais
 		salvarConfiguracoes: function() {
 			// Coletar e salvar as configurações
 			const configuracoes = {
@@ -246,128 +233,42 @@ window.restaurarPadroes = function() {
 			for (let i = 0; i < linhasSetores.length; i++) {
 				const linha = linhasSetores[i];
 				const id = linha.id.replace('setor-', '');
-
-				// Identificar se é um select ou input para o nome do setor
-				const selectNome = linha.querySelector(`select[name="setor-nome-${id}"]`);
-				const inputNome = linha.querySelector(`input[name="setor-nome-${id}"]`);
 				
-				// Obter o nome e código corretamente
-				let nome, codigo;
-				if (selectNome) {
-					codigo = selectNome.value;
-					nome = selectNome.options[selectNome.selectedIndex].text;
-				} else if (inputNome) {
-					nome = inputNome.value;
-					codigo = `setor-${id}`;
-				} else {
-					nome = `Setor ${id}`;
-					codigo = `setor-${id}`;
+				// Obter os valores dos campos
+				let nomeSetor = '';
+				const nomeInput = linha.querySelector(`input[name="setor-nome-${id}"]`);
+				const nomeSelect = linha.querySelector(`select[name="setor-nome-${id}"]`);
+				
+				if (nomeSelect) {
+					nomeSetor = nomeSelect.options[nomeSelect.selectedIndex].text;
+				} else if (nomeInput) {
+					nomeSetor = nomeInput.value;
 				}
 
-				// Obter outros valores
-				const inputAliquota = linha.querySelector(`input[name="setor-aliquota-${id}"]`);
-				const inputReducao = linha.querySelector(`input[name="setor-reducao-${id}"]`);
-				const selectCronograma = linha.querySelector(`select[name="setor-cronograma-${id}"]`);
-
-				if (inputAliquota && inputReducao && selectCronograma) {
-					configuracoes.setores.push({
-						id: id,
-						codigo: codigo,
-						nome: nome,
-						aliquota: parseFloat(inputAliquota.value),
-						reducao: parseFloat(inputReducao.value),
-						tipoCronograma: selectCronograma.value,
-						cronogramaEspecifico: this._setoresCronogramas[id] || null
-					});
-				}
+				configuracoes.setores.push({
+					id: id,
+					nome: nomeSetor,
+					aliquota: parseFloat(document.querySelector(`input[name="setor-aliquota-${id}"]`).value),
+					reducao: parseFloat(document.querySelector(`input[name="setor-reducao-${id}"]`).value),
+					tipoCronograma: document.querySelector(`select[name="setor-cronograma-${id}"]`).value,
+					cronogramaEspecifico: this._setoresCronogramas[id] || null
+				});
 			}
 
-			// Salvar as configurações no localStorage
+			// Salvar as configurações
 			localStorage.setItem('configuracoes-setoriais', JSON.stringify(configuracoes));
-
-			// Atualizar o objeto SimuladorApp.config.setores_especiais
-			if (SimuladorApp && SimuladorApp.config && SimuladorApp.config.setores_especiais) {
-				// Limpar setores especiais existentes
-				SimuladorApp.config.setores_especiais = {};
-
-				// Adicionar setores da tabela
-				for (let i = 0; i < linhasSetores.length; i++) {
-					const linha = linhasSetores[i];
-					const id = linha.id.replace('setor-', '');
-
-					// Selecionar elementos usando querySelector para garantir compatibilidade
-					// com as possíveis mudanças de input para select
-					const selectNome = linha.querySelector(`select[name="setor-nome-${id}"]`);
-					const inputNome = linha.querySelector(`input[name="setor-nome-${id}"]`);
-					const inputAliquota = linha.querySelector(`input[name="setor-aliquota-${id}"]`);
-					const inputReducao = linha.querySelector(`input[name="setor-reducao-${id}"]`);
-					const selectCronograma = linha.querySelector(`select[name="setor-cronograma-${id}"]`);
-
-					// Verificar se os elementos necessários existem
-					if ((selectNome || inputNome) && inputAliquota && inputReducao && selectCronograma) {
-						// Determinar o nome e o código do setor
-						let codigo, nome;
-						
-						if (selectNome) {
-							codigo = selectNome.value || `setor-${id}`;
-							nome = selectNome.options[selectNome.selectedIndex].text;
-						} else {
-							codigo = `setor-${id}`;
-							nome = inputNome.value;
-						}
-						
-						// Usar código padronizado para compatibilidade
-						// Converter nomes para códigos amigáveis (sem espaços, acentos, etc.)
-						let codigoPadronizado;
-						if (codigo && codigo !== "") {
-							codigoPadronizado = codigo;
-						} else {
-							codigoPadronizado = nome.toLowerCase()
-								.normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // Remover acentos
-								.replace(/\s+/g, '-')  // Substituir espaços por hífens
-								.replace(/[^a-z0-9-]/g, ''); // Remover caracteres especiais
-						}
-						
-						// Garantir que o código seja único 
-						// Se o código já existir, adicionar um sufixo numérico
-						let codigoFinal = codigoPadronizado;
-						let contador = 1;
-						while (SimuladorApp.config.setores_especiais[codigoFinal]) {
-							codigoFinal = `${codigoPadronizado}-${contador}`;
-							contador++;
-						}
-
-						// Armazenar o setor com o código padronizado
-						SimuladorApp.config.setores_especiais[codigoFinal] = {
-							nome: nome,
-							aliquota_efetiva: parseFloat(inputAliquota.value) / 100,
-							reducao_especial: parseFloat(inputReducao.value) / 100,
-							cronograma_proprio: selectCronograma.value === 'proprio',
-							cronograma: this._setoresCronogramas[id] || null
-						};
-						
-						console.log(`Setor armazenado: ${nome} (${codigoFinal})`);
-					}
-				}
-
-				// Salvar configurações do SimuladorApp
-				SimuladorApp.config.salvarConfiguracoes();
-
-				// Atualizar dropdown de setores - chamada correta para o método de atualização
-				if (typeof SimuladorApp.atualizarDropdownSetores === 'function') {
-					console.log('Chamando método atualizarDropdownSetores');
-					SimuladorApp.atualizarDropdownSetores();
-				} else if (typeof SimuladorApp.popularDropdownSetores === 'function') {
-					console.log('Chamando método popularDropdownSetores (alternativo)');
-					SimuladorApp.popularDropdownSetores();
-				} else {
-					console.error('Método para atualizar dropdown de setores não encontrado. A integração com o menu dropdown pode não funcionar corretamente.');
-				}
+			
+			// *** ADIÇÃO: Sincronizar com o objeto principal de configuração ***
+			if (SimuladorApp && SimuladorApp.config) {
+				SimuladorApp.config.sincronizarSetoresEspeciaisDoConfigSetoriais();
+				// Atualizar o dropdown de setores
+				SimuladorApp.atualizarDropdownSetores();
 			}
 
 			alert('Configurações salvas com sucesso!');
 		},
 
+		// No arquivo configuracoes-setoriais.js, modificar o método restaurarPadroes:
 		restaurarPadroes: function() {
 			if (confirm('Tem certeza que deseja restaurar todas as configurações para os valores padrão? Isso apagará todas as personalizações.')) {
 				// Restaurar alíquotas e data de início
@@ -589,7 +490,7 @@ window.restaurarPadroes = function() {
 						this._setoresCronogramas[id] = cronogramaEspecifico;
 					}
 				}
-				
+				// ADICIONAR ESTE BLOCO ao final do método, antes do alert:
 				// Atualizar objeto SimuladorApp.config
 				if (SimuladorApp && SimuladorApp.config) {
 					// Criar nova instância com valores padrão
@@ -599,17 +500,8 @@ window.restaurarPadroes = function() {
 					SimuladorApp.simulador = new SimuladorFluxoCaixa(SimuladorApp.config);
 
 					// Atualizar dropdown de setores
-					if (typeof SimuladorApp.atualizarDropdownSetores === 'function') {
-						SimuladorApp.atualizarDropdownSetores();
-					} else if (typeof SimuladorApp.popularDropdownSetores === 'function') {
-						SimuladorApp.popularDropdownSetores();
-					} else {
-						console.error('Método para atualizar dropdown de setores não encontrado');
-					}
+					SimuladorApp.popularDropdownSetores();
 				}
-				
-				// Converter inputs para selects após a restauração completa
-				this._configurarSelectsExistentes();
 				
 				alert('Todas as configurações foram restauradas para os valores padrão.');
 			}
@@ -617,58 +509,41 @@ window.restaurarPadroes = function() {
 
 		// Métodos privados
 		_configurarEventListeners: function() {
-			// Adicionar event listeners para os botões principais
-			const btnAdicionarSetor = document.getElementById('btn-adicionar-setor');
-			if (btnAdicionarSetor) {
-				btnAdicionarSetor.addEventListener('click', function() {
-					SimuladorApp.ConfiguracoesSetoriais.adicionarSetor();
-				});
-			}
+			// Adicionar event listeners para os botões principales
+			document.getElementById('btn-adicionar-setor').addEventListener('click', function() {
+				SimuladorApp.ConfiguracoesSetoriais.adicionarSetor();
+			});
 
-			const btnRestaurarCronograma = document.getElementById('btn-restaurar-cronograma');
-			if (btnRestaurarCronograma) {
-				btnRestaurarCronograma.addEventListener('click', function() {
-					SimuladorApp.ConfiguracoesSetoriais.restaurarCronogramaPadrao();
-				});
-			}
+			document.getElementById('btn-restaurar-cronograma').addEventListener('click', function() {
+				SimuladorApp.ConfiguracoesSetoriais.restaurarCronogramaPadrao();
+			});
 
-			const btnSalvarConfiguracoes = document.getElementById('btn-salvar-configuracoes');
-			if (btnSalvarConfiguracoes) {
-				btnSalvarConfiguracoes.addEventListener('click', function() {
-					SimuladorApp.ConfiguracoesSetoriais.salvarConfiguracoes();
-				});
-			}
+			document.getElementById('btn-salvar-configuracoes').addEventListener('click', function() {
+				SimuladorApp.ConfiguracoesSetoriais.salvarConfiguracoes();
+			});
 
-			const btnRestaurarPadroes = document.getElementById('btn-restaurar-padroes');
-			if (btnRestaurarPadroes) {
-				btnRestaurarPadroes.addEventListener('click', function() {
-					SimuladorApp.ConfiguracoesSetoriais.restaurarPadroes();
-				});
-			}
+			document.getElementById('btn-restaurar-padroes').addEventListener('click', function() {
+				SimuladorApp.ConfiguracoesSetoriais.restaurarPadroes();
+			});
 
 			// Event listeners para o modal
-			const btnSalvarCronogramaSetor = document.getElementById('btn-salvar-cronograma-setor');
-			if (btnSalvarCronogramaSetor) {
-				btnSalvarCronogramaSetor.addEventListener('click', function() {
-					SimuladorApp.ConfiguracoesSetoriais.salvarCronogramaSetor();
-				});
-			}
+			document.getElementById('btn-salvar-cronograma-setor').addEventListener('click', function() {
+				SimuladorApp.ConfiguracoesSetoriais.salvarCronogramaSetor();
+			});
 
-			const btnCancelarModal = document.getElementById('btn-cancelar-modal');
-			if (btnCancelarModal) {
-				btnCancelarModal.addEventListener('click', function() {
-					SimuladorApp.ConfiguracoesSetoriais.fecharModalCronograma();
-				});
-			}
+			document.getElementById('btn-cancelar-modal').addEventListener('click', function() {
+				SimuladorApp.ConfiguracoesSetoriais.fecharModalCronograma();
+			});
 
-			const btnFecharModal = document.getElementById('btn-fechar-modal');
-			if (btnFecharModal) {
-				btnFecharModal.addEventListener('click', function() {
-					SimuladorApp.ConfiguracoesSetoriais.fecharModalCronograma();
-				});
-			}
+			document.getElementById('btn-fechar-modal').addEventListener('click', function() {
+				SimuladorApp.ConfiguracoesSetoriais.fecharModalCronograma();
+			});
 		},
 		
+		// Arquivo: configuracoes-setoriais.js
+		// Localização: Dentro do objeto SimuladorApp.ConfiguracoesSetoriais
+		// Adicione antes da função _carregarConfiguracoesAnteriores
+
 		_obterOpcoesSetores: function() {
 			// Verificar se SimuladorApp.config existe
 			if (!SimuladorApp || !SimuladorApp.config || !SimuladorApp.config.setores_especiais) {
@@ -678,20 +553,9 @@ window.restaurarPadroes = function() {
 
 			let options = '';
 			const setores = SimuladorApp.config.setores_especiais;
-			
-			console.log('Obtendo opções de setores a partir de:', setores);
-
-			// Verificar se há setores para adicionar
-			if (Object.keys(setores).length === 0) {
-				console.warn('Nenhum setor encontrado para gerar opções');
-				return '';
-			}
 
 			for (const [codigo, setor] of Object.entries(setores)) {
-				if (setor && setor.nome) {
-					options += `<option value="${codigo}">${setor.nome}</option>`;
-					console.log(`Opção de setor adicionada: ${setor.nome} (${codigo})`);
-				}
+				options += `<option value="${codigo}">${setor.nome}</option>`;
 			}
 
 			return options;
@@ -724,94 +588,56 @@ window.restaurarPadroes = function() {
 			const selectCronograma = document.querySelector(`select[name="setor-cronograma-${setorId}"]`);
 			if (selectCronograma && setor.cronograma_proprio) {
 				selectCronograma.value = 'proprio';
-				
-				// Se tiver cronograma próprio, carregar os dados
-				if (setor.cronograma) {
-					this._setoresCronogramas[setorId] = setor.cronograma;
-				}
 			}
 		},
 		
 		_configurarSelectsExistentes: function() {
-			// Substituir inputs de texto existentes por selects
-			const linhasSetores = document.querySelectorAll('#sector-table tbody tr');
-			
-			console.log(`Configurando ${linhasSetores.length} selects existentes`);
+		// Substituir inputs de texto existentes por selects
+		const linhasSetores = document.querySelectorAll('#sector-table tbody tr');
 
-			linhasSetores.forEach(linha => {
-				const setorId = linha.id.replace('setor-', '');
-				const inputNome = linha.querySelector(`input[name="setor-nome-${setorId}"]`);
+		linhasSetores.forEach(linha => {
+			const setorId = linha.id.replace('setor-', '');
+			const inputNome = linha.querySelector(`input[name="setor-nome-${setorId}"]`);
 
-				if (inputNome) {
-					const nomeAtual = inputNome.value;
-					const tdNome = inputNome.parentNode;
-					
-					console.log(`Configurando select para setor ${setorId} com nome atual "${nomeAtual}"`);
+			if (inputNome) {
+				const nomeAtual = inputNome.value;
+				const tdNome = inputNome.parentNode;
 
-					// Criar select com opções
-					const setoresOptions = this._obterOpcoesSetores();
-					const selectHTML = `
-						<select name="setor-nome-${setorId}" class="setor-select" data-id="${setorId}">
-							<option value="">Selecione um setor...</option>
-							${setoresOptions}
-						</select>
-					`;
+				// Criar select com opções
+				const setoresOptions = this._obterOpcoesSetores();
+				const selectHTML = `
+					<select name="setor-nome-${setorId}" class="setor-select" data-id="${setorId}">
+						<option value="">Selecione um setor...</option>
+						${setoresOptions}
+					</select>
+				`;
 
-					tdNome.innerHTML = selectHTML;
+				tdNome.innerHTML = selectHTML;
 
-					// Tentar selecionar a opção que corresponde ao nome atual
-					const selectNovo = tdNome.querySelector('select');
-					if (selectNovo) {
-						// Procurar opção por texto
-						const options = Array.from(selectNovo.options);
-						const optionCorrespondente = options.find(option => option.text === nomeAtual);
+				// Tentar selecionar a opção que corresponde ao nome atual
+				const selectNovo = tdNome.querySelector('select');
+				if (selectNovo) {
+					// Procurar opção por texto
+					const options = Array.from(selectNovo.options);
+					const optionCorrespondente = options.find(option => option.text === nomeAtual);
 
-						if (optionCorrespondente) {
-							selectNovo.value = optionCorrespondente.value;
-							console.log(`Opção correspondente encontrada: ${optionCorrespondente.value}`);
-						} else {
-							console.log(`Nenhuma opção correspondente encontrada para "${nomeAtual}"`);
-							
-							// Adicionar opção para o setor atual se não for encontrado
-							const novaOption = document.createElement('option');
-							const codigoNovo = `setor-${setorId}`;
-							novaOption.value = codigoNovo;
-							novaOption.text = nomeAtual;
-							selectNovo.appendChild(novaOption);
-							selectNovo.value = codigoNovo;
-							
-							// Adicionar à configuração se não existir
-							if (SimuladorApp.config && SimuladorApp.config.setores_especiais) {
-								const inputAliquota = linha.querySelector(`input[name="setor-aliquota-${setorId}"]`);
-								const inputReducao = linha.querySelector(`input[name="setor-reducao-${setorId}"]`);
-								const selectCronograma = linha.querySelector(`select[name="setor-cronograma-${setorId}"]`);
-								
-								if (inputAliquota && inputReducao && selectCronograma) {
-									SimuladorApp.config.setores_especiais[codigoNovo] = {
-										nome: nomeAtual,
-										aliquota_efetiva: parseFloat(inputAliquota.value) / 100,
-										reducao_especial: parseFloat(inputReducao.value) / 100,
-										cronograma_proprio: selectCronograma.value === 'proprio',
-										cronograma: this._setoresCronogramas[setorId] || null
-									};
-								}
-							}
-						}
-
-						// Adicionar evento de mudança
-						selectNovo.addEventListener('change', this._preencherDadosSetor.bind(this));
+					if (optionCorrespondente) {
+						selectNovo.value = optionCorrespondente.value;
 					}
+
+					// Adicionar evento de mudança
+					selectNovo.addEventListener('change', this._preencherDadosSetor.bind(this));
 				}
-			});
-		},
+			}
+		});
+	},
 
 		_carregarConfiguracoesAnteriores: function() {
 			const configuracoesAnteriores = localStorage.getItem('configuracoes-setoriais');
 			if (configuracoesAnteriores) {
 				try {
 					const config = JSON.parse(configuracoesAnteriores);
-					console.log('Configurações anteriores carregadas do localStorage:', config);
-					
+
 					// Carregar parâmetros gerais
 					if (config.parametrosGerais) {
 						document.getElementById('aliquota-cbs').value = config.parametrosGerais.aliquotaCBS;
@@ -879,58 +705,8 @@ window.restaurarPadroes = function() {
 
 						// Atualizar o próximo ID
 						this._nextSetorId = maxId + 1;
-						
-						// Assegurar que haja pelo menos um setor padrão, se a tabela ficou vazia
-						if (maxId === 0) {
-							this.restaurarPadroes();
-						}
 					}
 					
-					// Atualizar a configuração global do SimuladorApp
-					if (SimuladorApp && SimuladorApp.config) {
-						// Limpar setores especiais existentes
-						SimuladorApp.config.setores_especiais = {};
-						
-						// Carregar dados dos setores para o SimuladorApp.config
-						if (config.setores && config.setores.length > 0) {
-							config.setores.forEach(setor => {
-								const codigo = setor.codigo || `setor-${setor.id}`;
-								
-								SimuladorApp.config.setores_especiais[codigo] = {
-									nome: setor.nome,
-									aliquota_efetiva: setor.aliquota / 100,
-									reducao_especial: setor.reducao / 100,
-									cronograma_proprio: setor.tipoCronograma === 'proprio',
-									cronograma: setor.cronogramaEspecifico
-								};
-							});
-						}
-						
-						// Atualizar alíquotas base
-						if (config.parametrosGerais) {
-							SimuladorApp.config.aliquotas_base.CBS = config.parametrosGerais.aliquotaCBS / 100;
-							SimuladorApp.config.aliquotas_base.IBS = config.parametrosGerais.aliquotaIBS / 100;
-						}
-						
-						// Atualizar cronograma
-						if (config.parametrosGerais && config.parametrosGerais.cronograma) {
-							for (let ano = 2026; ano <= 2033; ano++) {
-								if (config.parametrosGerais.cronograma[ano] !== undefined) {
-									SimuladorApp.config.cronograma_implementacao[ano] = config.parametrosGerais.cronograma[ano] / 100;
-								}
-							}
-						}
-						
-						// Salvar alterações
-						SimuladorApp.config.salvarConfiguracoes();
-						
-						// Atualizar dropdown de setores
-						if (typeof SimuladorApp.atualizarDropdownSetores === 'function') {
-							SimuladorApp.atualizarDropdownSetores();
-						} else if (typeof SimuladorApp.popularDropdownSetores === 'function') {
-							SimuladorApp.popularDropdownSetores();
-						}
-					}
 
 					console.log('Configurações carregadas com sucesso do localStorage.');
 				} catch (e) {
@@ -963,19 +739,5 @@ window.restaurarPadroes = function() {
 		if (abaAtiva && abaAtiva.getAttribute('href') === '#configuracoes-setoriais') {
 			SimuladorApp.ConfiguracoesSetoriais.inicializar();
 		}
-		
-		// Também verificar pela classe tab-button para compatibilidade com sistema de navegação novo
-		const tabButtons = document.querySelectorAll('.tab-button');
-		tabButtons.forEach(function(button) {
-			if (button.classList.contains('active') && button.getAttribute('data-tab') === 'configuracoes-setoriais') {
-				SimuladorApp.ConfiguracoesSetoriais.inicializar();
-			}
-			
-			button.addEventListener('click', function() {
-				if (this.getAttribute('data-tab') === 'configuracoes-setoriais') {
-					SimuladorApp.ConfiguracoesSetoriais.inicializar();
-				}
-			});
-		});
 	});
 })();

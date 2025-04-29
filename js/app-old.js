@@ -1567,6 +1567,32 @@ const SimuladorApp = {
                 1 - this.config.converterPercentualParaNumero(percVistaInput?.value || "30%")
             );
         }
+         // Adicionar esta linha ao final da função, antes do fechamento:
+        this.popularDropdownSetores();
+    },
+        
+    // Adicionar esta função ao objeto SimuladorApp no arquivo app.js
+    // Após a função 'carregarValoresInterface'
+
+    // Popula o dropdown de setores com os dados das configurações setoriais
+    popularDropdownSetores: function() {
+        const setorDropdown = document.getElementById('setor');
+        if (!setorDropdown) return;
+
+        // Limpar opções existentes, mantendo apenas a opção padrão "Selecione..."
+        while (setorDropdown.options.length > 1) {
+            setorDropdown.remove(1);
+        }
+
+        // Adicionar setores das configurações
+        if (this.config && this.config.setores_especiais) {
+            for (const [codigo, setor] of Object.entries(this.config.setores_especiais)) {
+                const option = document.createElement('option');
+                option.value = codigo;
+                option.textContent = setor.nome;
+                setorDropdown.appendChild(option);
+            }
+        }
     },
     
     // No arquivo app.js, substituir a função realizarSimulacao pelo código abaixo:
