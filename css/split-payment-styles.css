@@ -847,3 +847,9 @@ tr:hover {
         width: 100%;
     }
 }
+
+/* Adicionar ao arquivo split-payment-styles.css */
+.campo-atualizado {
+    background-color: rgba(46, 204, 113, 0.2) !important;
+    transition: background-color 0.5s ease;
+}

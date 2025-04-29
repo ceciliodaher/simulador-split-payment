@@ -7,25 +7,30 @@
 const ConfiguracoesGeraisController = {
     inicializar: function() {
         console.log('Inicializando controlador de Configurações Gerais');
-        
+
+        // Garantir que o repositório esteja carregado
+        if (typeof SimuladorRepository !== 'undefined' && !SimuladorRepository.obterSecao('setoresEspeciais')) {
+            SimuladorRepository.carregar();
+        }
+
         // Carregar dados existentes
         this.carregarDados();
-        
+
         // Inicializar formatação para campos monetários e percentuais
         this.inicializarFormatacao();
-        
+
         // Inicializar eventos
         this.inicializarEventos();
-        
+
         // Calcular ciclo financeiro inicial
         this.calcularCicloFinanceiro();
-        
+
         // Inicializar dropdown de setores
         this.inicializarDropdownSetores();
-        
+
         console.log('Controlador de Configurações Gerais inicializado');
-    },
-    
+    }, 
+        
     carregarDados: function() {
         // Recuperar dados do repositório
         const dadosEmpresa = SimuladorRepository.obterSecao('empresa');
@@ -196,14 +201,30 @@ const ConfiguracoesGeraisController = {
         }
         
         // Eventos para cálculo automático do ciclo financeiro
-        ['pmr-config', 'pmp-config', 'pme-config'].forEach(id => {
-            const campo = document.getElementById(id);
-            if (campo) {
-                campo.addEventListener('input', () => {
-                    this.calcularCicloFinanceiro();
-                });
-            }
-        });
+    const camposCiclo = ['pmr-config', 'pmp-config', 'pme-config'];
+    
+    camposCiclo.forEach(id => {
+        const campo = document.getElementById(id);
+        if (campo) {
+            // Remover listeners anteriores para evitar duplicação
+            const novoElemento = campo.cloneNode(true);
+            campo.parentNode.replaceChild(novoElemento, campo);
+            
+            // Adicionar novo listener
+            novoElemento.addEventListener('input', () => {
+                this.calcularCicloFinanceiro();
+            });
+            
+            novoElemento.addEventListener('change', () => {
+                this.calcularCicloFinanceiro();
+            });
+        } else {
+            console.error(`Campo ${id} não encontrado`);
+        }
+    });
+    
+    // Garantir que o ciclo seja calculado na inicialização
+    this.calcularCicloFinanceiro();
         
         // Evento para atualização automática do percentual a prazo
         const campoPercVista = document.getElementById('perc-vista-config');
@@ -221,11 +242,27 @@ const ConfiguracoesGeraisController = {
         const pmr = parseInt(document.getElementById('pmr-config').value) || 0;
         const pmp = parseInt(document.getElementById('pmp-config').value) || 0;
         const pme = parseInt(document.getElementById('pme-config').value) || 0;
-        
+
         const ciclo = pmr + pme - pmp;
         const campoCiclo = document.getElementById('ciclo-financeiro-config');
+
         if (campoCiclo) {
             campoCiclo.value = ciclo;
+
+            // Atualizar também no repositório
+            const cicloFinanceiro = SimuladorRepository.obterSecao('cicloFinanceiro');
+            if (cicloFinanceiro) {
+                cicloFinanceiro.cicloTotal = ciclo;
+                SimuladorRepository.atualizarSecao('cicloFinanceiro', cicloFinanceiro);
+            }
+
+            // Destacar visualmente o campo para indicar a atualização
+            campoCiclo.classList.add('campo-atualizado');
+            setTimeout(() => {
+                campoCiclo.classList.remove('campo-atualizado');
+            }, 1000);
+        } else {
+            console.error('Elemento ciclo-financeiro-config não encontrado');
         }
     },
     
@@ -247,19 +284,25 @@ const ConfiguracoesGeraisController = {
             console.warn('Elemento select "setor-config" não encontrado');
             return;
         }
-        
+
         // Limpar opções existentes, exceto a primeira (Selecione...)
         while (selectSetor.options.length > 1) {
             selectSetor.remove(1);
         }
-        
-        // Obter setores do repositório
-        const setores = SimuladorRepository.obterSecao('setoresEspeciais');
-        if (!setores || Object.keys(setores).length === 0) {
-            console.warn('Nenhum setor encontrado para adicionar ao dropdown');
+
+        // Verificar se SimuladorApp.config existe e tem setores_especiais
+        if (typeof SimuladorApp === 'undefined' || 
+            !SimuladorApp.config || 
+            !SimuladorApp.config.setores_especiais || 
+            Object.keys(SimuladorApp.config.setores_especiais).length === 0) {
+
+            console.error('SimuladorApp.config.setores_especiais não encontrado ou vazio');
             return;
         }
-        
+
+        const setores = SimuladorApp.config.setores_especiais;
+        console.log('Setores encontrados em SimuladorApp.config:', setores);
+
         // Adicionar opções ao dropdown
         for (const [codigo, setor] of Object.entries(setores)) {
             if (setor && setor.nome) {
@@ -269,7 +312,7 @@ const ConfiguracoesGeraisController = {
                 selectSetor.appendChild(option);
             }
         }
-        
+
         console.log('Dropdown de setores atualizado com sucesso.');
     }
 };

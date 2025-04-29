@@ -65,30 +65,39 @@ A nova arquitetura proposta reorganiza o fluxo de dados do aplicativo para segui
 
 ## 3. Estrutura de Navegação
 
-### 3.1 Reorganização das Abas
+### 3.1 Organização das Abas
 
-1. **Configurações Gerais** (Nova Aba)
+1. **Configurações Gerais**
+   
    - Informações básicas da empresa
    - Seleção do setor de atividade
    - Regime tributário
    - Parâmetros financeiros gerais
 
-2. **Configurações Setoriais** (Modificada)
+2. **Configurações Setoriais**
+   
    - Parâmetros específicos do setor
    - Alíquotas e reduções setoriais
    - Cronogramas de implementação
 
-3. **Simulação Principal** (Modificada)
+3. **Simulação Principal** 
+   
    - Visualiza dados pré-configurados (somente leitura)
    - Parâmetros específicos da simulação
    - Execução da simulação
    - Visualização de resultados
 
-4. **Estratégias de Mitigação** (Mantida)
+4. **Estratégias de Mitigação** 
+   
    - Baseada nos resultados da simulação
 
-5. **Memória de Cálculo** (Mantida)
+5. **Memória de Cálculo** 
+   
    - Visualização detalhada dos cálculos
+
+6. **Ajuda e Documentação**
+   
+   - Documentação, FAQ e Ajuda do Simulador
 
 ### 3.2 Fluxo de Navegação Recomendado
 
@@ -301,25 +310,30 @@ const ConfiguracaoSimulador = {
 Reorganizar o código em módulos mais bem definidos:
 
 1. **Módulo de Configuração**
+   
    - Gerencia todas as configurações do sistema
    - Persiste e recupera dados
    - Valida parâmetros
 
 2. **Módulo de Simulação**
+   
    - Executa simulações com base nas configurações
    - Calcula impactos e projeções
    - Gera relatórios
 
 3. **Módulo de Interface**
+   
    - Gerencia a navegação entre abas
    - Atualiza componentes visuais
    - Coleta entrada do usuário
 
 4. **Módulo de Persistência**
+   
    - Salva e recupera dados do localStorage
    - Mantém a integridade dos dados
 
 5. **Módulo de Utilidades**
+   
    - Funções de formatação
    - Funções auxiliares
    - Validadores
@@ -331,36 +345,36 @@ Reorganizar o código em módulos mais bem definidos:
 const SimuladorRepository = {
     // Dados compartilhados - inicializados com valores padrão
     _dados: { ... }, // Estrutura completa definida em 4.1
-    
+
     // Obtém todos os dados
     obterDados: function() {
         return this._dados;
     },
-    
+
     // Obtém uma seção específica
     obterSecao: function(secao) {
         return this._dados[secao];
     },
-    
+
     // Atualiza uma seção específica
     atualizarSecao: function(secao, dados) {
         this._dados[secao] = { ...this._dados[secao], ...dados };
         this._notificarMudanca(secao);
         return this._dados[secao];
     },
-    
+
     // Atualiza um campo específico
     atualizarCampo: function(secao, campo, valor) {
         if (!this._dados[secao]) {
             console.error(`Seção '${secao}' não encontrada`);
             return null;
         }
-        
+
         this._dados[secao][campo] = valor;
         this._notificarMudanca(secao, campo);
         return valor;
     },
-    
+
     // Salva todos os dados no localStorage
     salvar: function() {
         try {
@@ -372,7 +386,7 @@ const SimuladorRepository = {
             return false;
         }
     },
-    
+
     // Carrega dados do localStorage
     carregar: function() {
         try {
@@ -389,10 +403,10 @@ const SimuladorRepository = {
             return false;
         }
     },
-    
+
     // Sistema de observadores para atualizações de UI
     _observadores: {},
-    
+
     // Adiciona um observador para mudanças em seções/campos
     observar: function(secao, callback) {
         if (!this._observadores[secao]) {
@@ -400,7 +414,7 @@ const SimuladorRepository = {
         }
         this._observadores[secao].push(callback);
     },
-    
+
     // Notifica observadores sobre mudanças
     _notificarMudanca: function(secao, campo) {
         // Notificar observadores da seção específica
@@ -409,7 +423,7 @@ const SimuladorRepository = {
                 callback(this._dados[secao], campo);
             });
         }
-        
+
         // Notificar observadores globais
         if (secao !== '*' && this._observadores['*']) {
             this._observadores['*'].forEach(callback => {
@@ -432,7 +446,7 @@ Esta nova aba funcionará como o ponto de entrada para configuração do sistema
 <div id="configuracoes-gerais" class="tab-content">
     <h2>Configurações Gerais da Empresa</h2>
     <p class="text-muted mb-3">Defina informações básicas da empresa para simulação do impacto do Split Payment.</p>
-    
+
     <div class="group-box">
         <h3>Dados da Empresa</h3>
         <div class="form-row">
@@ -464,7 +478,7 @@ Esta nova aba funcionará como o ponto de entrada para configuração do sistema
             </div>
         </div>
     </div>
-    
+
     <div class="group-box">
         <h3>Parâmetros Financeiros Gerais</h3>
         <div class="form-row">
@@ -505,7 +519,7 @@ Esta nova aba funcionará como o ponto de entrada para configuração do sistema
             </div>
         </div>
     </div>
-    
+
     <div class="group-box">
         <h3>Parâmetros do Ciclo Financeiro</h3>
         <div class="form-row">
@@ -571,7 +585,7 @@ Esta nova aba funcionará como o ponto de entrada para configuração do sistema
             </div>
         </div>
     </div>
-    
+
     <!-- Botões -->
     <div class="buttons-container">
         <button type="button" class="primary" id="btn-salvar-config">Salvar Configurações</button>
@@ -588,48 +602,48 @@ Esta nova aba funcionará como o ponto de entrada para configuração do sistema
 const ConfiguracoesGeraisController = {
     inicializar: function() {
         console.log('Inicializando controlador de Configurações Gerais');
-        
+
         // Carregar dados existentes
         this.carregarDados();
-        
+
         // Inicializar formatação para campos monetários e percentuais
         this.inicializarFormatacao();
-        
+
         // Inicializar eventos
         this.inicializarEventos();
-        
+
         // Calcular ciclo financeiro inicial
         this.calcularCicloFinanceiro();
-        
+
         console.log('Controlador de Configurações Gerais inicializado');
     },
-    
+
     carregarDados: function() {
         // Recuperar dados do repositório
         const dadosEmpresa = SimuladorRepository.obterSecao('empresa');
         const dadosCiclo = SimuladorRepository.obterSecao('cicloFinanceiro');
-        
+
         // Preencher campos do formulário
         document.getElementById('nome-empresa').value = dadosEmpresa.nome || '';
-        
+
         // Verificar se setor existe e preencher dropdown
         if (dadosEmpresa.setor) {
             const selectSetor = document.getElementById('setor-config');
             if (selectSetor) selectSetor.value = dadosEmpresa.setor;
         }
-        
+
         // Preencher regime tributário
         if (dadosEmpresa.regime) {
             const selectRegime = document.getElementById('regime-config');
             if (selectRegime) selectRegime.value = dadosEmpresa.regime;
         }
-        
+
         // Preencher faturamento
         const faturamento = document.getElementById('faturamento-config');
         if (faturamento && dadosEmpresa.faturamento) {
             faturamento.value = FormatacaoHelper.formatarMoeda(dadosEmpresa.faturamento);
         }
-        
+
         // Preencher período
         const periodoMensal = document.getElementById('periodo-mensal-config');
         const periodoAnual = document.getElementById('periodo-anual-config');
@@ -640,30 +654,30 @@ const ConfiguracoesGeraisController = {
                 periodoMensal.checked = true;
             }
         }
-        
+
         // Preencher margem
         const margem = document.getElementById('margem-config');
         if (margem && dadosEmpresa.margem) {
             margem.value = FormatacaoHelper.formatarPercentual(dadosEmpresa.margem);
         }
-        
+
         // Preencher dados de ciclo financeiro
         document.getElementById('pmr-config').value = dadosCiclo.pmr || 30;
         document.getElementById('pmp-config').value = dadosCiclo.pmp || 30;
         document.getElementById('pme-config').value = dadosCiclo.pme || 30;
-        
+
         // Preencher percentuais
         const percVista = document.getElementById('perc-vista-config');
         if (percVista && dadosCiclo.percVista) {
             percVista.value = FormatacaoHelper.formatarPercentual(dadosCiclo.percVista);
         }
-        
+
         const percPrazo = document.getElementById('perc-prazo-config');
         if (percPrazo && dadosCiclo.percPrazo) {
             percPrazo.value = FormatacaoHelper.formatarPercentual(dadosCiclo.percPrazo);
         }
     },
-    
+
     salvarDados: function() {
         // Coletar dados do formulário
         const nome = document.getElementById('nome-empresa').value;
@@ -676,13 +690,13 @@ const ConfiguracoesGeraisController = {
         const margem = FormatacaoHelper.extrairValorNumerico(
             document.getElementById('margem-config').value
         ) / 100; // Converter para decimal
-        
+
         // Validar dados obrigatórios
         if (!nome || !setor || !regime || isNaN(faturamento) || faturamento <= 0) {
             alert('Por favor, preencha todos os campos obrigatórios corretamente.');
             return false;
         }
-        
+
         // Coletar dados do ciclo financeiro
         const pmr = parseInt(document.getElementById('pmr-config').value) || 30;
         const pmp = parseInt(document.getElementById('pmp-config').value) || 30;
@@ -691,7 +705,7 @@ const ConfiguracoesGeraisController = {
             document.getElementById('perc-vista-config').value
         ) / 100; // Converter para decimal
         const percPrazo = 1 - percVista;
-        
+
         // Atualizar dados no repositório
         SimuladorRepository.atualizarSecao('empresa', {
             nome,
@@ -701,7 +715,7 @@ const ConfiguracoesGeraisController = {
             periodo,
             margem
         });
-        
+
         SimuladorRepository.atualizarSecao('cicloFinanceiro', {
             pmr,
             pmp,
@@ -709,21 +723,21 @@ const ConfiguracoesGeraisController = {
             percVista,
             percPrazo
         });
-        
+
         // Salvar no localStorage
         SimuladorRepository.salvar();
-        
+
         alert('Configurações da empresa salvas com sucesso!');
         return true;
     },
-    
+
     inicializarFormatacao: function() {
         // Inicializar formatação para campos monetários
         const camposFaturamento = document.getElementById('faturamento-config');
         if (camposFaturamento && window.FormatacaoHelper) {
             window.FormatacaoHelper.formatarInputMonetario(camposFaturamento);
         }
-        
+
         // Inicializar formatação para campos percentuais
         const camposMargem = document.getElementById('margem-config');
         const camposPercVista = document.getElementById('perc-vista-config');
@@ -732,7 +746,7 @@ const ConfiguracoesGeraisController = {
             if (camposPercVista) window.FormatacaoHelper.formatarInputPercentual(camposPercVista);
         }
     },
-    
+
     inicializarEventos: function() {
         // Botão salvar
         const btnSalvar = document.getElementById('btn-salvar-config');
@@ -741,7 +755,7 @@ const ConfiguracoesGeraisController = {
                 this.salvarDados();
             });
         }
-        
+
         // Botão limpar
         const btnLimpar = document.getElementById('btn-limpar-config');
         if (btnLimpar) {
@@ -761,7 +775,7 @@ const ConfiguracoesGeraisController = {
                 }
             });
         }
-        
+
         // Botão avançar
         const btnAvancar = document.getElementById('btn-avancar-config');
         if (btnAvancar) {
@@ -772,7 +786,7 @@ const ConfiguracoesGeraisController = {
                 }
             });
         }
-        
+
         // Eventos para cálculo automático do ciclo financeiro
         ['pmr-config', 'pmp-config', 'pme-config'].forEach(id => {
             const campo = document.getElementById(id);
@@ -782,7 +796,7 @@ const ConfiguracoesGeraisController = {
                 });
             }
         });
-        
+
         // Evento para atualização automática do percentual a prazo
         const campoPercVista = document.getElementById('perc-vista-config');
         if (campoPercVista) {
@@ -794,50 +808,50 @@ const ConfiguracoesGeraisController = {
             });
         }
     },
-    
+
     calcularCicloFinanceiro: function() {
         const pmr = parseInt(document.getElementById('pmr-config').value) || 0;
         const pmp = parseInt(document.getElementById('pmp-config').value) || 0;
         const pme = parseInt(document.getElementById('pme-config').value) || 0;
-        
+
         const ciclo = pmr + pme - pmp;
         const campoCiclo = document.getElementById('ciclo-financeiro-config');
         if (campoCiclo) {
             campoCiclo.value = ciclo;
         }
     },
-    
+
     atualizarPercPrazo: function() {
         const percVista = document.getElementById('perc-vista-config');
         const percPrazo = document.getElementById('perc-prazo-config');
-        
+
         if (percVista && percPrazo) {
             const valorPercVista = FormatacaoHelper.extrairValorNumerico(percVista.value) / 100;
             const valorPercPrazo = Math.max(0, Math.min(1, 1 - valorPercVista));
-            
+
             percPrazo.value = FormatacaoHelper.formatarPercentual(valorPercPrazo);
         }
     },
-    
+
     inicializarDropdownSetores: function() {
         const selectSetor = document.getElementById('setor-config');
         if (!selectSetor) {
             console.warn('Elemento select "setor-config" não encontrado');
             return;
         }
-        
+
         // Limpar opções existentes, exceto a primeira (Selecione...)
         while (selectSetor.options.length > 1) {
             selectSetor.remove(1);
         }
-        
+
         // Obter setores do repositório
         const setores = SimuladorRepository.obterSecao('setoresEspeciais');
         if (!setores || Object.keys(setores).length === 0) {
             console.warn('Nenhum setor encontrado para adicionar ao dropdown');
             return;
         }
-        
+
         // Adicionar opções ao dropdown
         for (const [codigo, setor] of Object.entries(setores)) {
             if (setor && setor.nome) {
@@ -847,7 +861,7 @@ const ConfiguracoesGeraisController = {
                 selectSetor.appendChild(option);
             }
         }
-        
+
         console.log('Dropdown de setores atualizado com sucesso.');
     }
 };
@@ -860,7 +874,7 @@ const ConfiguracoesGeraisController = {
 ```html
 <div id="simulacao-principal" class="tab-content">
     <h2>Simulação Principal</h2>
-    
+
     <!-- Dados básicos da empresa (somente leitura) -->
     <div class="group-box">
         <h3>Dados da Empresa</h3>
@@ -896,12 +910,12 @@ const ConfiguracoesGeraisController = {
             </div>
         </div>
     </div>
-    
+
     <!-- O resto do formulário de simulação permanece similar -->
     <!-- Porém, os campos já preenchidos em Configurações Gerais são pré-preenchidos e somente leitura -->
-    
+
     <!-- ... (demais elementos do formulário) ... -->
-    
+
     <!-- Botões -->
     <div class="buttons-container">
         <button type="button" class="primary" id="btn-simular">Simular</button>
@@ -917,40 +931,40 @@ const ConfiguracoesGeraisController = {
 const SimulacaoPrincipalController = {
     inicializar: function() {
         console.log('Inicializando controlador de Simulação Principal');
-        
+
         // Verificar se as configurações foram realizadas
         this.verificarConfiguracaoPreviaPrenchida();
-        
+
         // Carregar dados do repositório
         this.carregarDados();
-        
+
         // Inicializar eventos
         this.inicializarEventos();
-        
+
         console.log('Controlador de Simulação Principal inicializado');
     },
-    
+
     verificarConfiguracaoPreviaPrenchida: function() {
         // Verificar se as configurações básicas foram preenchidas
         const dadosEmpresa = SimuladorRepository.obterSecao('empresa');
-        
+
         if (!dadosEmpresa.nome || !dadosEmpresa.setor || !dadosEmpresa.regime) {
             // Redirecionar para a aba de configurações gerais
             alert('É necessário preencher as configurações gerais da empresa antes de realizar uma simulação.');
             document.querySelector('.tab-button[data-tab="configuracoes-gerais"]').click();
         }
     },
-    
+
     carregarDados: function() {
         // Carregar dados da empresa (somente leitura)
         const dadosEmpresa = SimuladorRepository.obterSecao('empresa');
         const dadosCiclo = SimuladorRepository.obterSecao('cicloFinanceiro');
         const parametrosFiscais = SimuladorRepository.obterSecao('parametrosFiscais');
         const parametrosSimulacao = SimuladorRepository.obterSecao('parametrosSimulacao');
-        
+
         // Preencher campos da empresa
         document.getElementById('nome-empresa-sim').value = dadosEmpresa.nome || '';
-        
+
         // Preencher setor
         const selectSetor = document.getElementById('setor');
         if (selectSetor && dadosEmpresa.setor) {
@@ -958,19 +972,19 @@ const SimulacaoPrincipalController = {
             this.atualizarDropdownSetores();
             selectSetor.value = dadosEmpresa.setor;
         }
-        
+
         // Preencher regime
         const selectRegime = document.getElementById('regime');
         if (selectRegime && dadosEmpresa.regime) {
             selectRegime.value = dadosEmpresa.regime;
         }
-        
+
         // Preencher faturamento
         const faturamento = document.getElementById('faturamento');
         if (faturamento && dadosEmpresa.faturamento) {
             faturamento.value = FormatacaoHelper.formatarMoeda(dadosEmpresa.faturamento);
         }
-        
+
         // Preencher período
         const periodoMensal = document.getElementById('periodo-mensal');
         const periodoAnual = document.getElementById('periodo-anual');
@@ -981,73 +995,73 @@ const SimulacaoPrincipalController = {
                 periodoMensal.checked = true;
             }
         }
-        
+
         // Preencher margem
         const margem = document.getElementById('margem');
         if (margem && dadosEmpresa.margem !== undefined) {
             margem.value = FormatacaoHelper.formatarPercentual(dadosEmpresa.margem);
         }
-        
+
         // Preencher dados do ciclo financeiro
         document.getElementById('pmr').value = dadosCiclo.pmr || 30;
         document.getElementById('pmp').value = dadosCiclo.pmp || 30;
         document.getElementById('pme').value = dadosCiclo.pme || 30;
-        
+
         // Calcular ciclo financeiro
         const cicloFinanceiro = document.getElementById('ciclo-financeiro');
         if (cicloFinanceiro) {
             cicloFinanceiro.value = (dadosCiclo.pmr || 30) + (dadosCiclo.pme || 30) - (dadosCiclo.pmp || 30);
         }
-        
+
         // Preencher percentuais
         const percVista = document.getElementById('perc-vista');
         if (percVista && dadosCiclo.percVista !== undefined) {
             percVista.value = FormatacaoHelper.formatarPercentual(dadosCiclo.percVista);
         }
-        
+
         const percPrazo = document.getElementById('perc-prazo');
         if (percPrazo && dadosCiclo.percPrazo !== undefined) {
             percPrazo.value = FormatacaoHelper.formatarPercentual(dadosCiclo.percPrazo);
         }
-        
+
         // Preencher parâmetros fiscais
         const aliquota = document.getElementById('aliquota');
         if (aliquota && parametrosFiscais.aliquota !== undefined) {
             aliquota.value = parametrosFiscais.aliquota * 100; // Converter para percentual
         }
-        
+
         const tipoOperacao = document.getElementById('tipo-operacao');
         if (tipoOperacao && parametrosFiscais.tipoOperacao) {
             tipoOperacao.value = parametrosFiscais.tipoOperacao;
         }
-        
+
         const creditos = document.getElementById('creditos');
         if (creditos && parametrosFiscais.creditos !== undefined) {
             creditos.value = FormatacaoHelper.formatarMoeda(parametrosFiscais.creditos);
         }
-        
+
         // Preencher parâmetros de simulação
         const dataInicial = document.getElementById('data-inicial');
         if (dataInicial && parametrosSimulacao.dataInicial) {
             dataInicial.value = parametrosSimulacao.dataInicial;
         }
-        
+
         const dataFinal = document.getElementById('data-final');
         if (dataFinal && parametrosSimulacao.dataFinal) {
             dataFinal.value = parametrosSimulacao.dataFinal;
         }
-        
+
         const cenario = document.getElementById('cenario');
         if (cenario && parametrosSimulacao.cenario) {
             cenario.value = parametrosSimulacao.cenario;
-            
+
             // Se for cenário personalizado, mostrar campo de taxa
             if (parametrosSimulacao.cenario === 'personalizado') {
                 const divCenarioPersonalizado = document.getElementById('cenario-personalizado');
                 if (divCenarioPersonalizado) {
                     divCenarioPersonalizado.style.display = 'block';
                 }
-                
+
                 const taxaCrescimento = document.getElementById('taxa-crescimento');
                 if (taxaCrescimento && parametrosSimulacao.taxaCrescimento !== undefined) {
                     taxaCrescimento.value = parametrosSimulacao.taxaCrescimento * 100; // Converter para percentual
@@ -1055,7 +1069,7 @@ const SimulacaoPrincipalController = {
             }
         }
     },
-    
+
     inicializarEventos: function() {
         // Botão para editar configurações
         const btnEditarSetor = document.getElementById('btn-editar-setor');
@@ -1064,7 +1078,7 @@ const SimulacaoPrincipalController = {
                 document.querySelector('.tab-button[data-tab="configuracoes-gerais"]').click();
             });
         }
-        
+
         // Botão voltar para configurações
         const btnVoltarConfig = document.getElementById('btn-voltar-config');
         if (btnVoltarConfig) {
@@ -1072,7 +1086,7 @@ const SimulacaoPrincipalController = {
                 document.querySelector('.tab-button[data-tab="configuracoes-gerais"]').click();
             });
         }
-        
+
         // Botão simular
         const btnSimular = document.getElementById('btn-simular');
         if (btnSimular) {
@@ -1080,7 +1094,7 @@ const SimulacaoPrincipalController = {
                 this.realizarSimulacao();
             });
         }
-        
+
         // Campo de alíquota
         const campoAliquota = document.getElementById('aliquota');
         if (campoAliquota) {
@@ -1091,7 +1105,7 @@ const SimulacaoPrincipalController = {
                 }
             });
         }
-        
+
         // Campo tipo de operação
         const campoTipoOperacao = document.getElementById('tipo-operacao');
         if (campoTipoOperacao) {
@@ -1099,7 +1113,7 @@ const SimulacaoPrincipalController = {
                 SimuladorRepository.atualizarCampo('parametrosFiscais', 'tipoOperacao', campoTipoOperacao.value);
             });
         }
-        
+
         // Campo de créditos
         const campoCreditos = document.getElementById('creditos');
         if (campoCreditos) {
@@ -1108,7 +1122,7 @@ const SimulacaoPrincipalController = {
                 SimuladorRepository.atualizarCampo('parametrosFiscais', 'creditos', valor);
             });
         }
-        
+
         // Campos de parâmetros de simulação
         const campoDataInicial = document.getElementById('data-inicial');
         if (campoDataInicial) {
@@ -1116,19 +1130,19 @@ const SimulacaoPrincipalController = {
                 SimuladorRepository.atualizarCampo('parametrosSimulacao', 'dataInicial', campoDataInicial.value);
             });
         }
-        
+
         const campoDataFinal = document.getElementById('data-final');
         if (campoDataFinal) {
             campoDataFinal.addEventListener('change', () => {
                 SimuladorRepository.atualizarCampo('parametrosSimulacao', 'dataFinal', campoDataFinal.value);
             });
         }
-        
+
         const campoCenario = document.getElementById('cenario');
         if (campoCenario) {
             campoCenario.addEventListener('change', () => {
                 SimuladorRepository.atualizarCampo('parametrosSimulacao', 'cenario', campoCenario.value);
-                
+
                 // Mostrar/ocultar campo de taxa personalizada
                 const divCenarioPersonalizado = document.getElementById('cenario-personalizado');
                 if (divCenarioPersonalizado) {
@@ -1137,7 +1151,7 @@ const SimulacaoPrincipalController = {
                 }
             });
         }
-        
+
         const campoTaxaCrescimento = document.getElementById('taxa-crescimento');
         if (campoTaxaCrescimento) {
             campoTaxaCrescimento.addEventListener('change', () => {
@@ -1148,26 +1162,26 @@ const SimulacaoPrincipalController = {
             });
         }
     },
-    
+
     atualizarDropdownSetores: function() {
         const selectSetor = document.getElementById('setor');
         if (!selectSetor) {
             console.warn('Elemento select "setor" não encontrado');
             return;
         }
-        
+
         // Limpar opções existentes, exceto a primeira (Selecione...)
         while (selectSetor.options.length > 1) {
             selectSetor.remove(1);
         }
-        
+
         // Obter setores do repositório
         const setores = SimuladorRepository.obterSecao('setoresEspeciais');
         if (!setores || Object.keys(setores).length === 0) {
             console.warn('Nenhum setor encontrado para adicionar ao dropdown');
             return;
         }
-        
+
         // Adicionar opções ao dropdown
         for (const [codigo, setor] of Object.entries(setores)) {
             if (setor && setor.nome) {
@@ -1177,44 +1191,44 @@ const SimulacaoPrincipalController = {
                 selectSetor.appendChild(option);
             }
         }
-        
+
         console.log('Dropdown de setores atualizado com sucesso.');
     },
-    
+
     realizarSimulacao: function() {
         // Verificar se as configurações necessárias estão preenchidas
         const dadosEmpresa = SimuladorRepository.obterSecao('empresa');
-        
+
         if (!dadosEmpresa.nome || !dadosEmpresa.setor || !dadosEmpresa.regime) {
             alert('É necessário preencher as configurações básicas da empresa antes de realizar a simulação.');
             return;
         }
-        
+
         // Coletar parâmetros fiscais do formulário
         const aliquota = parseFloat(document.getElementById('aliquota').value) / 100;
         const tipoOperacao = document.getElementById('tipo-operacao').value;
         const creditos = FormatacaoHelper.extrairValorNumerico(document.getElementById('creditos').value);
-        
+
         // Validar parâmetros obrigatórios
         if (isNaN(aliquota) || aliquota <= 0 || !tipoOperacao) {
             alert('Por favor, preencha todos os parâmetros tributários obrigatórios.');
             return;
         }
-        
+
         // Atualizar repositório com valores do formulário
         SimuladorRepository.atualizarSecao('parametrosFiscais', {
             aliquota,
             tipoOperacao,
             creditos
         });
-        
+
         // Coletar parâmetros de simulação
         const dataInicial = document.getElementById('data-inicial').value;
         const dataFinal = document.getElementById('data-final').value;
         const cenario = document.getElementById('cenario').value;
-        
+
         let taxaCrescimento = 0.05; // Valor padrão para cenário moderado
-        
+
         if (cenario === 'personalizado') {
             taxaCrescimento = parseFloat(document.getElementById('taxa-crescimento').value) / 100;
         } else if (cenario === 'conservador') {
@@ -1222,13 +1236,13 @@ const SimulacaoPrincipalController = {
         } else if (cenario === 'otimista') {
             taxaCrescimento = 0.08;
         }
-        
+
         // Validar parâmetros obrigatórios
         if (!dataInicial || !dataFinal || !cenario) {
             alert('Por favor, preencha todos os parâmetros de simulação obrigatórios.');
             return;
         }
-        
+
         // Atualizar repositório
         SimuladorRepository.atualizarSecao('parametrosSimulacao', {
             dataInicial,
@@ -1236,26 +1250,26 @@ const SimulacaoPrincipalController = {
             cenario,
             taxaCrescimento
         });
-        
+
         // Salvar dados no localStorage
         SimuladorRepository.salvar();
-        
+
         // Executar a simulação
         console.log('Iniciando simulação...');
-        
+
         // Simular usando o módulo de simulação (a ser implementado)
         const resultados = SimuladorModulo.simular();
-        
+
         // Armazenar resultados no repositório
         SimuladorRepository.atualizarSecao('resultadosSimulacao', resultados);
-        
+
         // Exibir resultados
         this.exibirResultados(resultados);
-        
+
         // Marcar que a simulação foi realizada
         SimuladorRepository.atualizarCampo('interfaceState', 'simulacaoRealizada', true);
     },
-    
+
     exibirResultados: function(resultados) {
         // Implementar exibição dos resultados
         const containerResultados = document.getElementById('resultados');
@@ -1263,20 +1277,20 @@ const SimulacaoPrincipalController = {
             console.error('Container de resultados não encontrado');
             return;
         }
-        
+
         // Formatar valores para exibição
         const formatarValor = val => FormatacaoHelper.formatarMoeda(val || 0);
         const formatarPercent = val => FormatacaoHelper.formatarPercentual(val || 0);
-        
+
         // Extrair dados principais
         const impacto = resultados.impactoBase;
         const projecao = resultados.projecaoTemporal;
-        
+
         // Construir HTML dos resultados
         let html = `
             <div class="result-card">
                 <h3>Resultados da Simulação</h3>
-                
+
                 <div class="result-section">
                     <h4>Impacto Inicial (${projecao?.parametros?.anoInicial || impacto.ano || '2026'})</h4>
                     <table class="result-table">
@@ -1306,7 +1320,7 @@ const SimulacaoPrincipalController = {
                         </tr>
                     </table>
                 </div>
-                
+
                 <div class="result-section">
                     <h4>Projeção do Impacto</h4>
                     <p>Impacto acumulado ao longo do período ${projecao?.parametros?.anoInicial || '2026'}-${projecao?.parametros?.anoFinal || '2033'}:</p>
@@ -1325,22 +1339,22 @@ const SimulacaoPrincipalController = {
                         </tr>
                     </table>
                 </div>
-                
+
                 <div class="call-to-action">
                     <button id="btn-estrategias" class="primary">Simular Estratégias de Mitigação</button>
                     <button id="btn-detalhes" class="secondary">Ver Detalhes Completos</button>
                 </div>
             </div>
         `;
-        
+
         // Inserir o HTML no container
         containerResultados.innerHTML = html;
-        
+
         // Adicionar event listeners aos botões
         document.getElementById('btn-estrategias')?.addEventListener('click', () => {
             document.querySelector('.tab-button[data-tab="estrategias-mitigacao"]').click();
         });
-        
+
         document.getElementById('btn-detalhes')?.addEventListener('click', () => {
             document.querySelector('.tab-button[data-tab="memoria-calculo"]').click();
         });
@@ -1362,13 +1376,13 @@ Exemplo de código principal:
 // Método salvarConfiguracoes do objeto SimuladorApp.ConfiguracoesSetoriais
 salvarConfiguracoes: function() {
     // ... código existente para coletar dados ...
-    
+
     // Atualizar o repositório central
     const setoresFormatados = {};
-    
+
     for (let i = 0; i < linhasSetores.length; i++) {
         // ... código existente para extrair dados ...
-        
+
         // Armazenar no formato padronizado
         setoresFormatados[codigoFinal] = {
             nome: nome,
@@ -1378,16 +1392,16 @@ salvarConfiguracoes: function() {
             cronograma: this._setoresCronogramas[id] || null
         };
     }
-    
+
     // Atualizar repositório central com os setores formatados
     SimuladorRepository.atualizarSecao('setoresEspeciais', setoresFormatados);
-    
+
     // Salvar no localStorage através do repositório central
     SimuladorRepository.salvar();
-    
+
     // Notificar outros módulos sobre a mudança
     // Não é mais necessário chamar métodos específicos, pois o repositório notifica os observadores
-    
+
     alert('Configurações salvas com sucesso!');
 }
 ```
@@ -1405,13 +1419,13 @@ const SimuladorModulo = {
      */
     simular: function() {
         console.log('Iniciando simulação...');
-        
+
         // Obter dados do repositório
         const dadosEmpresa = SimuladorRepository.obterSecao('empresa');
         const cicloFinanceiro = SimuladorRepository.obterSecao('cicloFinanceiro');
         const parametrosFiscais = SimuladorRepository.obterSecao('parametrosFiscais');
         const parametrosSimulacao = SimuladorRepository.obterSecao('parametrosSimulacao');
-        
+
         // Preparar dados para simulação
         const dados = {
             faturamento: dadosEmpresa.faturamento,
@@ -1432,14 +1446,14 @@ const SimuladorModulo = {
             cenario: parametrosSimulacao.cenario,
             taxaCrescimento: parametrosSimulacao.taxaCrescimento
         };
-        
+
         // Extrair ano inicial e final para simulação
         const anoInicial = parseInt(parametrosSimulacao.dataInicial.split('-')[0]);
         const anoFinal = parseInt(parametrosSimulacao.dataFinal.split('-')[0]);
-        
+
         // Calcular impacto inicial
         const impactoBase = this.calcularImpactoCapitalGiro(dados, anoInicial);
-        
+
         // Simular período de transição
         const projecaoTemporal = this.simularPeriodoTransicao(
             dados, 
@@ -1448,7 +1462,7 @@ const SimuladorModulo = {
             parametrosSimulacao.cenario, 
             parametrosSimulacao.taxaCrescimento
         );
-        
+
         // Armazenar memória de cálculo
         const memoriaCalculo = {
             parametrosEntrada: dados,
@@ -1457,23 +1471,23 @@ const SimuladorModulo = {
             impactoGeral: impactoBase,
             projecaoTemporal: projecaoTemporal
         };
-        
+
         // Resultados completos
         const resultados = {
             impactoBase,
             projecaoTemporal,
             memoriaCalculo
         };
-        
+
         console.log('Simulação concluída com sucesso');
-        
+
         return resultados;
     },
-    
+
     // Variáveis para armazenar resultados intermediários
     _resultadoAtual: null,
     _resultadoSplitPayment: null,
-    
+
     /**
      * Calcula o fluxo de caixa no regime tributário atual
      * @param {Object} dados Dados para simulação
@@ -1481,13 +1495,13 @@ const SimuladorModulo = {
      */
     calcularFluxoCaixaAtual: function(dados) {
         // ... implementação existente ...
-        
+
         // Armazenar resultado para memória de cálculo
         this._resultadoAtual = resultados;
-        
+
         return resultados;
     },
-    
+
     /**
      * Calcula o fluxo de caixa com o regime de Split Payment
      * @param {Object} dados Dados para simulação
@@ -1496,13 +1510,13 @@ const SimuladorModulo = {
      */
     calcularFluxoCaixaSplitPayment: function(dados, ano = 2026) {
         // ... implementação existente ...
-        
+
         // Armazenar resultado para memória de cálculo
         this._resultadoSplitPayment = resultados;
-        
+
         return resultados;
     },
-    
+
     /**
      * Calcula o impacto do Split Payment no capital de giro
      * @param {Object} dados Dados para simulação
@@ -1511,10 +1525,10 @@ const SimuladorModulo = {
      */
     calcularImpactoCapitalGiro: function(dados, ano = 2026) {
         // ... implementação existente ...
-        
+
         return resultados;
     },
-    
+
     /**
      * Simula o impacto ao longo do período de transição
      * @param {Object} dados Dados para simulação
@@ -1526,10 +1540,10 @@ const SimuladorModulo = {
      */
     simularPeriodoTransicao: function(dados, anoInicial = 2026, anoFinal = 2033, cenario = 'moderado', taxaCrescimento = null) {
         // ... implementação existente ...
-        
+
         return resultados;
     },
-    
+
     /**
      * Simula estratégias de mitigação
      * @param {Object} dados Dados para simulação
@@ -1539,7 +1553,7 @@ const SimuladorModulo = {
      */
     simularEstrategiasMitigacao: function(dados, estrategias, ano = 2026) {
         // ... implementação existente ...
-        
+
         return resultados;
     }
 };
@@ -1553,22 +1567,22 @@ const SimuladorModulo = {
 // Função de inicialização principal
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM carregado, inicializando simulador...');
-    
+
     // Inicializar o repositório central
     SimuladorRepository.carregar();
-    
+
     // Inicializar sistema de navegação
     inicializarNavegacao();
-    
+
     // Inicializar controladores para cada aba
     ConfiguracoesGeraisController.inicializar();
     SimulacaoPrincipalController.inicializar();
-    
+
     // Garantir que outras abas que dependem da simulação estejam inicializadas
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', function() {
             const tabId = this.getAttribute('data-tab');
-            
+
             switch (tabId) {
                 case 'configuracoes-gerais':
                     ConfiguracoesGeraisController.inicializar();
@@ -1598,10 +1612,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Inicializar na aba de configurações gerais
     document.querySelector('.tab-button[data-tab="configuracoes-gerais"]').click();
-    
+
     console.log('Simulador inicializado com sucesso');
 });
 
@@ -1621,22 +1635,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Observar mudanças nos setores para atualizar dropdowns
     SimuladorRepository.observar('setoresEspeciais', function(setores) {
         console.log('Setores atualizados, atualizando dropdowns...');
-        
+
         // Atualizar dropdown na aba de configurações gerais
         if (typeof ConfiguracoesGeraisController.inicializarDropdownSetores === 'function') {
             ConfiguracoesGeraisController.inicializarDropdownSetores();
         }
-        
+
         // Atualizar dropdown na aba de simulação
         if (typeof SimulacaoPrincipalController.atualizarDropdownSetores === 'function') {
             SimulacaoPrincipalController.atualizarDropdownSetores();
         }
     });
-    
+
     // Observar mudanças na empresa para atualizar interface de simulação
     SimuladorRepository.observar('empresa', function(dadosEmpresa) {
         console.log('Dados da empresa atualizados, atualizando interface de simulação...');
-        
+
         // Verificar se a aba de simulação está ativa
         const tabAtiva = SimuladorRepository.obterSecao('interfaceState').tabAtiva;
         if (tabAtiva === 'simulacao-principal') {
@@ -1665,26 +1679,26 @@ const Validador = {
         if (!dadosEmpresa.nome || dadosEmpresa.nome.trim() === '') {
             return { valido: false, mensagem: 'Nome da empresa é obrigatório.' };
         }
-        
+
         if (!dadosEmpresa.setor) {
             return { valido: false, mensagem: 'Setor de atividade é obrigatório.' };
         }
-        
+
         if (!dadosEmpresa.regime) {
             return { valido: false, mensagem: 'Regime tributário é obrigatório.' };
         }
-        
+
         if (isNaN(dadosEmpresa.faturamento) || dadosEmpresa.faturamento <= 0) {
             return { valido: false, mensagem: 'Faturamento deve ser um valor positivo.' };
         }
-        
+
         if (isNaN(dadosEmpresa.margem) || dadosEmpresa.margem < 0 || dadosEmpresa.margem > 1) {
             return { valido: false, mensagem: 'Margem operacional deve ser um percentual entre 0% e 100%.' };
         }
-        
+
         return { valido: true };
     },
-    
+
     /**
      * Valida os dados do ciclo financeiro
      * @param {Object} cicloFinanceiro Dados do ciclo financeiro
@@ -1694,32 +1708,32 @@ const Validador = {
         if (isNaN(cicloFinanceiro.pmr) || cicloFinanceiro.pmr < 0) {
             return { valido: false, mensagem: 'PMR deve ser um valor não negativo.' };
         }
-        
+
         if (isNaN(cicloFinanceiro.pmp) || cicloFinanceiro.pmp < 0) {
             return { valido: false, mensagem: 'PMP deve ser um valor não negativo.' };
         }
-        
+
         if (isNaN(cicloFinanceiro.pme) || cicloFinanceiro.pme < 0) {
             return { valido: false, mensagem: 'PME deve ser um valor não negativo.' };
         }
-        
+
         if (isNaN(cicloFinanceiro.percVista) || cicloFinanceiro.percVista < 0 || cicloFinanceiro.percVista > 1) {
             return { valido: false, mensagem: 'Percentual de vendas à vista deve ser entre 0% e 100%.' };
         }
-        
+
         if (isNaN(cicloFinanceiro.percPrazo) || cicloFinanceiro.percPrazo < 0 || cicloFinanceiro.percPrazo > 1) {
             return { valido: false, mensagem: 'Percentual de vendas a prazo deve ser entre 0% e 100%.' };
         }
-        
+
         // Validar que a soma é 100%
         const somaPercentuais = cicloFinanceiro.percVista + cicloFinanceiro.percPrazo;
         if (Math.abs(somaPercentuais - 1) > 0.001) { // Tolerância para erros de ponto flutuante
             return { valido: false, mensagem: 'A soma dos percentuais de vendas deve ser 100%.' };
         }
-        
+
         return { valido: true };
     },
-    
+
     // Outros métodos de validação...
 };
 ```
@@ -1738,23 +1752,23 @@ salvarDados: function() {
             setor: document.getElementById('setor-config').value,
             // ... outros campos
         };
-        
+
         // Validar dados
         const validacao = Validador.validarDadosEmpresa(dadosEmpresa);
         if (!validacao.valido) {
             alert(validacao.mensagem);
             return false;
         }
-        
+
         // Salvar no repositório
         SimuladorRepository.atualizarSecao('empresa', dadosEmpresa);
-        
+
         // Salvar no localStorage
         const salvamento = SimuladorRepository.salvar();
         if (!salvamento) {
             throw new Error('Falha ao salvar dados no localStorage');
         }
-        
+
         alert('Dados salvos com sucesso!');
         return true;
     } catch (error) {

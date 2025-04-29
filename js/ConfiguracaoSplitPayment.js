@@ -37,27 +37,80 @@ class ConfiguracaoSplitPayment {
         };
 
         // Configurações para setores com regimes especiais
-        this.setores_especiais = {
-            "comercio": {
-                nome: "Comércio Varejista",
-                aliquota_efetiva: 0.265,
-                reducao_especial: 0.0,
-                cronograma_proprio: false
-            },
-            "industria": {
-                nome: "Indústria",
-                aliquota_efetiva: 0.265,
-                reducao_especial: 0.0,
-                cronograma_proprio: false
-            },
-            "servicos": {
-                nome: "Serviços",
-                aliquota_efetiva: 0.265,
-                reducao_especial: 0.0,
-                cronograma_proprio: false
-            }
-            // Outros setores serão adicionados conforme necessário
-        };
+		this.setoresespeciais = {
+		  comercio: {
+			nome: "Comércio Varejista",
+			aliquotaefetiva: 0.265,
+			reducaoespecial: 0.0,
+			cronogramaproprio: false
+		  },
+		  industria: {
+			nome: "Indústria",
+			aliquotaefetiva: 0.265,
+			reducaoespecial: 0.0,
+			cronogramaproprio: false
+		  },
+		  servicos: {
+			nome: "Serviços",
+			aliquotaefetiva: 0.265,
+			reducaoespecial: 0.0,
+			cronogramaproprio: false
+		  },
+		  agronegocio: {
+			nome: "Agronegócio",
+			aliquotaefetiva: 0.22,
+			reducaoespecial: 0.17,
+			cronogramaproprio: true
+		  },
+		  saude: {
+			nome: "Saúde",
+			aliquotaefetiva: 0.18,
+			reducaoespecial: 0.32,
+			cronogramaproprio: true
+		  },
+		  educacao: {
+			nome: "Educação",
+			aliquotaefetiva: 0.165,
+			reducaoespecial: 0.377,
+			cronogramaproprio: true
+		  },
+		  transporte: {
+			nome: "Transporte Público",
+			aliquotaefetiva: 0.15,
+			reducaoespecial: 0.434,
+			cronogramaproprio: true
+		  },
+		  construcao: {
+			nome: "Construção Civil",
+			aliquotaefetiva: 0.24,
+			reducaoespecial: 0.094,
+			cronogramaproprio: false
+		  },
+		  tecnologia: {
+			nome: "Tecnologia",
+			aliquotaefetiva: 0.235,
+			reducaoespecial: 0.113,
+			cronogramaproprio: false
+		  },
+		  energia: {
+			nome: "Energia",
+			aliquotaefetiva: 0.205,
+			reducaoespecial: 0.226,
+			cronogramaproprio: false
+		  },
+		  financeiro: {
+			nome: "Serviços Financeiros",
+			aliquotaefetiva: 0.265,
+			reducaoespecial: 0.0,
+			cronogramaproprio: false
+		  },
+		  saneamento: {
+			nome: "Saneamento Básico",
+			aliquotaefetiva: 0.14,
+			reducaoespecial: 0.472,
+			cronogramaproprio: true
+		  }
+		};
 
         // Configurações para análise de fluxo de caixa
         this.parametros_fluxo_caixa = {
